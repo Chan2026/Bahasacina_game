@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分号对错大挑战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --correct-color: #2ecc71;
+            --wrong-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --semicolon-color: #ff0000; /* 分号专用颜色：红色 */
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #quiz-container {
+            background: white;
+            width: 1000px;
+            height: 650px;
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            border: 10px solid #3498db;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .question-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .sentence {
+            font-size: 45px;
+            line-height: 1.6;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .malay-hint {
+            font-size: 22px;
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        /* 分号高亮样式 */
+        .sc-color {
+            color: var(--semicolon-color);
+            font-size: 55px;
+            font-family: 'Georgia', serif;
+            font-weight: 900;
+            padding: 0 5px;
+        }
+
+        /* 答案区域 */
+        #answer-panel {
+            display: none;
+            background: #f1f8ff;
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+            border: 3px solid #3498db;
+            animation: fadeIn 0.5s;
+        }
+
+        .ans-status {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .ans-explanation {
+            font-size: 24px;
+            color: #34495e;
+        }
+
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .btn-show { background: #3498db; color: white; }
+        .btn-next { background: #2c3e50; color: white; }
+        .btn:hover { transform: translateY(-3px); opacity: 0.9; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .decor { position: absolute; font-size: 100px; opacity: 0.05; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="decor" style="top:20px; left:20px;">“ ”</div>
+    <div class="decor" style="bottom:20px; right:20px;">；</div>
+
+    <div class="header">
+        <span id="q-num">第 1 / 10 题</span>
+        <span>分号对错大挑战 (Betul atau Salah?)</span>
+    </div>
+
+    <div class="question-area">
+        <div class="sentence" id="sentence-text">加载中...</div>
+        <div class="malay-hint" id="malay-text">Loading...</div>
+        
+        <div id="answer-panel">
+            <div class="ans-status" id="ans-status">---</div>
+            <div class="ans-explanation" id="ans-expl">---</div>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-show" onclick="showAnswer()">显示答案 (Lihat Jawapan)</button>
+        <button class="btn btn-next" onclick="nextQuestion()">下一题 (Seterusnya)</button>
+    </div>
+</div>
+
+<script>
+    const sc = '<span class="sc-color">；</span>';
+
+    const questions = [
+        {
+            s: `刘备宽厚仁慈${sc}关羽忠肝义胆。`,
+            m: "Liu Bei murah hati; Guan Yu setia.",
+            status: "✅ 对 (Betul)",
+            expl: "两个分句是并列关系，各讲一个人的性格。<br><small>Dua klausa ini setara, menceritakan sifat dua orang berbeza.</small>",
+            isCorrect: true
+        },
+        {
+            s: `今天天气很好${sc}我想去公园。`,
+            m: "Cuaca hari ini sangat baik; saya mahu ke taman.",
+            status: "❌ 错 (Salah)",
+            expl: "这两个意思连接很紧，应该用逗号 [ ， ]。<br><small>Dua klausa ini sangat berkait rapat, guna tanda koma sahaja.</small>",
+            isCorrect: false
+        },
+        {
+            s: `有的同学在看书${sc}有的同学在写字。`,
+            m: "Ada murid membaca buku; ada murid menulis.",
+            status: "✅ 对 (Betul)",
+            expl: "使用了 有的...有的... 结构，典型的并列关系。<br><small>Guna struktur ada yang... ada yang..., hubungan setara.</small>",
+            isCorrect: true
+        },
+        {
+            s: `我最喜欢的标点符号是${sc}分号。`,
+            m: "Tanda baca kegemaran saya ialah; semicolon.",
+            status: "❌ 错 (Salah)",
+            expl: "句子还没讲完，不能用分号，应该删掉它。<br><small>Ayat belum habis, tidak boleh letak semicolon di situ.</small>",
+            isCorrect: false
+        },
+        {
+            s: `下课了，操场上很热闹${sc}有的在跳绳，有的在踢球。`,
+            m: "Waktu rehat, padang sangat meriah; ada yang lompat tali, ada yang main bola.",
+            status: "✅ 对 (Betul)",
+            expl: "前面是个总起句，后面是两个并列的分句。<br><small>Satu penyataan umum diikuti dua klausa yang setara.</small>",
+            isCorrect: true
+        },
+        {
+            s: `我带了：铅笔${sc}橡皮和尺。`,
+            m: "Saya bawa: pensel; pemadam dan pembaris.",
+            status: "❌ 错 (Salah)",
+            expl: "列出来的词语太短，应该用逗号 [ ， ] 或顿号 [ 、 ]。<br><small>Item yang disenaraikan terlalu pendek, guna koma sahaja.</small>",
+            isCorrect: false
+        },
+        {
+            s: `春天，大地充满了生机${sc}秋天，处处是丰收的景象。`,
+            m: "Musim bunga, bumi penuh nyawa; musim luruh, segalanya hasil tuaian.",
+            status: "✅ 对 (Betul)",
+            expl: "两个分句分别描写两个季节，结构对称且并列。<br><small>Dua klausa ini menggambarkan dua musim, struktur simetri dan setara.</small>",
+            isCorrect: true
+        },
+        {
+            s: `昨天，我和妈妈去超市买东西${sc}`,
+            m: "Semalam, saya dan ibu pergi pasar raya beli barang;",
+            status: "❌ 错 (Salah)",
+            expl: "句子结束了应该用句号 [ 。 ]，不能用分号。<br><small>Ayat sudah tamat, perlu guna tanda noktah (.).</small>",
+            isCorrect: false
+        },
+        {
+            s: `早晨，草上的露珠晶莹剔透${sc}花间的蝴蝶翩翩起舞。`,
+            m: "Pagi, titisan embun di rumput berkilauan; rama-rama menari di celah bunga.",
+            status: "✅ 对 (Betul)",
+            expl: "优美的并列句，描述两处风景。<br><small>Ayat setara yang cantik, menggambarkan dua pemandangan.</small>",
+            isCorrect: true
+        },
+        {
+            s: `如果你努力学习${sc}就能取得好成绩。`,
+            m: "Jika kamu belajar bersungguh-sungguh; kamu akan dapat keputusan baik.",
+            status: "❌ 错 (Salah)",
+            expl: "这是关联词句子（如果...就），中间用逗号 [ ， ] 就好。<br><small>Ini ayat perkaitan (Jika... maka...), hanya perlu guna koma.</small>",
+            isCorrect: false
+        }
+    ];
+
+    let currentIdx = 0;
+
+    function updateQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('q-num').innerText = `第 ${currentIdx + 1} / ${questions.length} 题`;
+        document.getElementById('sentence-text').innerHTML = q.s;
+        document.getElementById('malay-text').innerText = q.m;
+        document.getElementById('answer-panel').style.display = 'none';
+    }
+
+    function showAnswer() {
+        const q = questions[currentIdx];
+        const panel = document.getElementById('answer-panel');
+        const status = document.getElementById('ans-status');
+        const expl = document.getElementById('ans-expl');
+
+        status.innerText = q.status;
+        status.style.color = q.isCorrect ? 'var(--correct-color)' : 'var(--wrong-color)';
+        expl.innerHTML = q.expl;
+        
+        panel.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx >= questions.length) {
+            currentIdx = 0;
+            alert("挑战结束！即将回到第一题。(Cabaran tamat!)");
+        }
+        updateQuestion();
+    }
+
+    updateQuestion();
+</script>
+
+</body>
+</html>
