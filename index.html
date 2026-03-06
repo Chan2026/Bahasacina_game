@@ -73,13 +73,18 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            text-decoration: none;
+            text-decoration: none; /* 确保去掉下划线 */
         }
 
         .game-card:hover {
             transform: scale(1.1) rotate(2deg);
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
             z-index: 10;
+        }
+
+        /* 模拟点击效果 */
+        .game-card:active {
+            transform: scale(0.95);
         }
 
         /* 空位插槽样式 */
@@ -148,12 +153,36 @@
     <div class="forest-bg"></div>
 
     <script>
-        // 在这里添加你的游戏信息！
+        /**
+         * 注意：
+         * 1. 确保 link 填入正确的游戏网址（例如 https://yourname.github.io/game1/）
+         * 2. 如果只是 "#" ，点击后页面只会刷新，不会跳转。
+         */
         const games = [
-            { title: "成语接龙", icon: "🐉", link: "#", color: "#FFDDE2" },
-            { title: "汉语拼音", icon: "🧩", link: "#", color: "#E2F0CB" },
-            { title: "古诗朗诵", icon: "📖", link: "#", color: "#C7CEEA" },
-            { title: "词语填空", icon: "✏️", link: "#", color: "#FFFFD1" }
+            { 
+                title: "成语接龙", 
+                icon: "🐉", 
+                link: "https://www.google.com", // 这是一个示例链接，测试点击
+                color: "#FFDDE2" 
+            },
+            { 
+                title: "汉字拼图", 
+                icon: "🧩", 
+                link: "#", // 请在这里替换成你的游戏网址
+                color: "#E2F0CB" 
+            },
+            { 
+                title: "古诗朗诵", 
+                icon: "📖", 
+                link: "#", 
+                color: "#C7CEEA" 
+            },
+            { 
+                title: "词语填空", 
+                icon: "✏️", 
+                link: "#", 
+                color: "#FFFFD1" 
+            }
         ];
 
         // 总共显示的格子数量（已有的游戏 + 空位）
@@ -168,6 +197,11 @@
             games.forEach(game => {
                 const card = document.createElement('a');
                 card.href = game.link;
+                // 如果是外部链接，可以加上 target="_blank" 在新标签页打开
+                if (game.link !== "#") {
+                    card.target = "_self"; 
+                }
+                
                 card.className = 'game-card';
                 card.style.backgroundColor = game.color;
                 card.innerHTML = `
@@ -178,7 +212,7 @@
             });
 
             // 填充剩余的空位
-            const remaining = totalSlots - games.length;
+            const remaining = Math.max(0, totalSlots - games.length);
             for (let i = 0; i < remaining; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'empty-slot';
@@ -190,5 +224,4 @@
         window.onload = renderGrid;
     </script>
 </body>
-
 </html>
