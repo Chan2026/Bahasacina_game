@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四年级华文 - 游戏森林</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --forest-green: #2d5a27;
+            --grass-light: #9edb64;
+            --grass-dark: #82c91e;
+            --sky-blue: #e0f7fa;
+            --flower-pink: #ff85a2;
+            --flower-yellow: #ffd43b;
+        }
+
+        body {
+            font-family: 'ZCOOL+KuaiLe', cursive, sans-serif;
+            background: linear-gradient(to bottom, var(--sky-blue) 0%, #ffffff 100%);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* 森林背景装饰 */
+        .forest-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(transparent, var(--grass-light));
+            z-index: -1;
+        }
+
+        /* 标题样式 */
+        .main-title {
+            font-size: 4rem;
+            color: var(--forest-green);
+            text-shadow: 3px 3px 0px #fff, 6px 6px 0px rgba(0,0,0,0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 游戏网格容器 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 25px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 游戏卡片样式 */
+        .game-card {
+            aspect-ratio: 1 / 1;
+            background: white;
+            border: 5px solid #fff;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .game-card:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* 空位插槽样式 */
+        .empty-slot {
+            aspect-ratio: 1 / 1;
+            border: 4px dashed rgba(45, 90, 39, 0.2);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .empty-slot::after {
+            content: '🌱';
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        /* 装饰物 */
+        .decoration {
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .tree { font-size: 80px; bottom: 20px; }
+        .flower { font-size: 40px; bottom: 10px; animation: sway 3s infinite ease-in-out; }
+        .cloud { font-size: 60px; top: 50px; opacity: 0.6; animation: drift 20s infinite linear; }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        @keyframes drift {
+            from { left: -100px; }
+            to { left: 100vw; }
+        }
+
+        .card-icon { font-size: 3.5rem; margin-bottom: 10px; }
+        .card-title { color: var(--forest-green); font-size: 1.2rem; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 装饰元素 -->
+    <div class="decoration tree" style="left: 5%;">🌳</div>
+    <div class="decoration tree" style="right: 5%;">🌲</div>
+    <div class="decoration flower" style="left: 15%; animation-delay: 0s;">🌸</div>
+    <div class="decoration flower" style="left: 25%; animation-delay: 1s;">🌼</div>
+    <div class="decoration flower" style="right: 20%; animation-delay: 0.5s;">🌷</div>
+    <div class="decoration cloud" style="top: 10%; animation-duration: 25s;">☁️</div>
+    <div class="decoration cloud" style="top: 25%; animation-duration: 35s; animation-delay: -5s;">☁️</div>
+
+    <header class="text-center py-16">
+        <h1 class="main-title mb-4">四年级华文</h1>
+        <p class="text-green-800 text-xl">欢迎来到智慧森林，让我们快乐学华文！</p>
+    </header>
+
+    <main id="gameContainer" class="game-grid">
+        <!-- 游戏卡片将由 JavaScript 渲染 -->
+    </main>
+
+    <div class="forest-bg"></div>
+
+    <script>
+        // 在这里添加你的游戏信息！
+        const games = [
+            { title: "成语接龙", icon: "🐉", link: "#", color: "#FFDDE2" },
+            { title: "汉字拼图", icon: "🧩", link: "#", color: "#E2F0CB" },
+            { title: "古诗朗诵", icon: "📖", link: "#", color: "#C7CEEA" },
+            { title: "词语填空", icon: "✏️", link: "#", color: "#FFFFD1" }
+        ];
+
+        // 总共显示的格子数量（已有的游戏 + 空位）
+        const totalSlots = 12;
+
+        const container = document.getElementById('gameContainer');
+
+        function renderGrid() {
+            container.innerHTML = '';
+
+            // 渲染现有游戏
+            games.forEach(game => {
+                const card = document.createElement('a');
+                card.href = game.link;
+                card.className = 'game-card';
+                card.style.backgroundColor = game.color;
+                card.innerHTML = `
+                    <div class="card-icon">${game.icon}</div>
+                    <div class="card-title">${game.title}</div>
+                `;
+                container.appendChild(card);
+            });
+
+            // 填充剩余的空位
+            const remaining = totalSlots - games.length;
+            for (let i = 0; i < remaining; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'empty-slot';
+                container.appendChild(slot);
+            }
+        }
+
+        // 初始化
+        window.onload = renderGrid;
+    </script>
+</body>
+</html>
