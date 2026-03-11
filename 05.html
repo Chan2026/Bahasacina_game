@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-MY">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蚊帐大使：荣誉挑战赛</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        body { font-family: 'Segoe UI', sans-serif; background: #ecfdf5; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .chinese-font { font-family: 'ZCOOL KuaiLe', cursive; }
+        .card { background: white; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 8px solid #10b981; width: 95vw; max-width: 500px; padding: 2rem; position: relative; }
+        .option-btn { transition: all 0.2s; background: #fff; border: 2px solid #e5e7eb; cursor: pointer; }
+        .option-btn:hover { border-color: #10b981; background: #f0fdf4; transform: translateY(-2px); }
+        .certificate { background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%); border: 10px double #10b981; padding: 2rem; border-radius: 1rem; }
+        #timer-bar { height: 100%; background: #10b981; width: 100%; transition: width 0.1s linear; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake-anim { animation: shake 0.2s ease-in-out 2; }
+    </style>
+</head>
+<body>
+
+    <!-- 首页 -->
+    <div id="start-screen" class="card text-center">
+        <h1 class="chinese-font text-5xl text-emerald-600 mb-2">蚊帐大使</h1>
+        <p class="text-emerald-700 font-bold mb-6 italic">挑战词汇，赢取荣誉证书</p>
+        
+        <div class="mb-6 bg-emerald-50 p-4 rounded-2xl">
+            <h2 class="font-bold text-emerald-800 mb-2">🏆 本机最高纪录</h2>
+            <div id="local-best" class="text-2xl font-black text-emerald-600">0 分</div>
+        </div>
+
+        <input type="text" id="player-name" placeholder="输入你的大名" class="w-full p-4 border-2 border-emerald-100 rounded-xl text-center text-xl mb-4 outline-none focus:border-emerald-500">
+        
+        <button onclick="startGame()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-xl text-2xl font-bold shadow-lg transition">开始挑战</button>
+        <p class="mt-4 text-xs text-gray-400 text-center italic">将网址发给朋友，看看谁分高！</p>
+    </div>
+
+    <!-- 游戏画面 -->
+    <div id="game-screen" class="card hidden">
+        <div class="flex justify-between items-center mb-4">
+            <span class="font-bold text-emerald-800 text-sm">选手: <span id="cur-name"></span></span>
+            <span class="bg-emerald-100 px-3 py-1 rounded-full font-black text-emerald-700">得分: <span id="score">0</span></span>
+        </div>
+        <div class="h-3 bg-gray-100 rounded-full mb-6 overflow-hidden">
+            <div id="timer-bar"></div>
+        </div>
+        <div class="text-center mb-6">
+            <div id="combo-ui" class="h-6 font-black italic opacity-0 text-orange-500">Combo x0</div>
+            <p id="question-def" class="text-xl font-medium text-gray-700 min-h-[90px] flex items-center justify-center leading-relaxed px-2"></p>
+            <p id="question-bm" class="text-blue-500 font-bold text-sm mt-1"></p>
+        </div>
+        <div class="grid grid-cols-2 gap-3" id="options-box"></div>
+    </div>
+
+    <!-- 荣誉证书/结算 -->
+    <div id="end-screen" class="card hidden">
+        <div id="capture-area" class="certificate text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 opacity-10 text-6xl">🏆</div>
+            <h2 class="chinese-font text-3xl text-emerald-700 mb-2">荣誉证书</h2>
+            <div class="w-20 h-1 bg-emerald-500 mx-auto mb-4"></div>
+            <p class="text-gray-600 mb-1">恭喜同学</p>
+            <p class="text-2xl font-bold text-gray-800 mb-4" id="cert-name"></p>
+            <p class="text-gray-600 mb-1">在《蚊帐大使》词汇挑战中获得</p>
+            <div class="text-5xl font-black text-emerald-600 mb-4"><span id="cert-score">0</span> 分</div>
+            <p class="text-sm text-emerald-800 font-bold italic" id="cert-title"></p>
+            <div class="mt-6 pt-4 border-t border-emerald-100 text-[10px] text-gray-400">
+                验证码: <span id="cert-code"></span> | 华文课词汇挑战
+            </div>
+        </div>
+        <p class="text-center text-gray-400 text-[10px] mt-4 mb-4">📸 截图证书发送到班级群，和同学比一比！</p>
+        <button onclick="resetToHome()" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-bold shadow hover:bg-emerald-600 transition">重新挑战 / 换人</button>
+    </div>
+
+    <script>
+        const words = [
+            { w: "描述", py: "miáo shù", d: "用语言或文字表现事物的样子。", b: "Menggambarkan" },
+            { w: "疟疾", py: "nüè ji", d: "一种由蚊子传播的传染病。", b: "Malaria" },
+            { w: "肆虐", py: "sì nüè", d: "大范围地造成破坏。", b: "Berleluasa" },
+            { w: "携手", py: "xié shǒu", d: "手拉手，比喻共同努力。", b: "Berganding bahu" },
+            { w: "荣誉", py: "róng yù", d: "光荣的名声。", b: "Kehormatan" },
+            { w: "印章", py: "yìn zhāng", d: "用来盖印记的工具。", b: "Cop / Cap" },
+            { w: "筹款", py: "chóu kuǎn", d: "设法募集钱财。", b: "Mengumpul dana" },
+            { w: "疑惑", py: "yí huò", d: "心里不明白，不相信。", b: "Keliru / Ragu" }
+        ];
+
+        let state = { score: 0, combo: 0, time: 60, name: "", timerInterval: null };
+
+        // 页面加载显示最高分
+        function updateBestScoreDisplay() {
+            const best = localStorage.getItem('mosquito_best') || 0;
+            document.getElementById('local-best').innerText = best + " 分";
+        }
+
+        window.onload = updateBestScoreDisplay;
+
+        function startGame() {
+            const nameInput = document.getElementById('player-name');
+            const name = nameInput.value.trim();
+            if(!name) {
+                alert("请输入你的名字！");
+                return;
+            }
+
+            // 重置状态
+            state.name = name;
+            state.score = 0;
+            state.combo = 0;
+            state.time = 60;
+            
+            document.getElementById('cur-name').innerText = name;
+            document.getElementById('score').innerText = "0";
+            document.getElementById('combo-ui').style.opacity = 0;
+            document.getElementById('timer-bar').style.width = "100%";
+
+            // 切换画面
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            
+            nextQuestion();
+
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                state.time -= 0.1;
+                document.getElementById('timer-bar').style.width = (state.time / 60 * 100) + "%";
+                if(state.time <= 0) {
+                    clearInterval(state.timerInterval);
+                    showEnd();
+                }
+            }, 100);
+        }
+
+        function nextQuestion() {
+            const q = words[Math.floor(Math.random() * words.length)];
+            state.current = q;
+            document.getElementById('question-def').innerText = q.d;
+            document.getElementById('question-bm').innerText = `[${q.b}]`;
+
+            let opts = [q.w];
+            while(opts.length < 4) {
+                let r = words[Math.floor(Math.random() * words.length)].w;
+                if(!optionsContain(opts, r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+
+            const box = document.getElementById('options-box');
+            box.innerHTML = '';
+            opts.forEach(o => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn p-4 rounded-xl flex flex-col items-center justify-center";
+                const py = words.find(v => v.w === o).py;
+                btn.innerHTML = `<span class="text-2xl font-bold">${o}</span><span class="text-xs text-gray-400 italic">${py}</span>`;
+                btn.onclick = () => {
+                    if(o === q.w) {
+                        state.combo++;
+                        state.score += (10 + Math.min(state.combo, 10) * 2);
+                        document.getElementById('score').innerText = state.score;
+                        const cb = document.getElementById('combo-ui');
+                        cb.innerText = `Combo x${state.combo}`;
+                        cb.style.opacity = 1;
+                        nextQuestion();
+                    } else {
+                        state.combo = 0;
+                        document.getElementById('combo-ui').style.opacity = 0;
+                        const screen = document.getElementById('game-screen');
+                        screen.classList.add('shake-anim');
+                        setTimeout(() => screen.classList.remove('shake-anim'), 400);
+                    }
+                };
+                box.appendChild(btn);
+            });
+        }
+
+        function optionsContain(arr, word) {
+            return arr.includes(word);
+        }
+
+        function showEnd() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('cert-name').innerText = state.name;
+            document.getElementById('cert-score').innerText = state.score;
+            
+            let title = "初级词汇守护者";
+            if(state.score > 100) title = "资深词汇大使";
+            if(state.score > 300) title = "蚊帐守护英雄";
+            if(state.score > 500) title = "全能词汇至尊";
+            document.getElementById('cert-title').innerText = "授予称号：" + title;
+
+            // 简单的防作弊验证码
+            const code = btoa(state.name + "|" + state.score).substring(0, 8);
+            document.getElementById('cert-code').innerText = code;
+
+            const best = localStorage.getItem('mosquito_best') || 0;
+            if(state.score > parseInt(best)) {
+                localStorage.setItem('mosquito_best', state.score);
+            }
+        }
+
+        function resetToHome() {
+            // 停止所有计时
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            
+            // 更新首页最高分
+            updateBestScoreDisplay();
+            
+            // 切换回首页
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('player-name').value = ""; // 清空输入框方便换人
+        }
+    </script>
+</body>
+</html>
