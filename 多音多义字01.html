@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>多音字梦幻乐园</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        
+        body {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            background-color: #f0f4f8;
+            color: #4a5568;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 页面切换动画 */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            transition: all 0.5s ease;
+            padding-bottom: 30px;
+        }
+
+        #page-study { transform: translateX(0); opacity: 1; z-index: 10; }
+        #page-game { transform: translateX(100%); opacity: 0; z-index: 5; }
+
+        .active-game #page-study { transform: translateX(-100%); opacity: 0; }
+        .active-game #page-game { transform: translateX(0); opacity: 1; }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: #fff;
+            display: flex;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: #a0aec0;
+            transition: 0.3s;
+        }
+
+        .nav-btn.active { color: #667eea; }
+
+        /* 学习卡片 */
+        .study-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 8px solid;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* 游戏画布 */
+        #game-canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 24px;
+            background: linear-gradient(to bottom, #a18cd1 0%, #fbc2eb 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .pinyin-tag {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .choice-btn {
+            background: #fff;
+            border: 3px solid #667eea;
+            color: #667eea;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #667eea;
+        }
+
+        .choice-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 学习区分页 -->
+    <div id="page-study" class="page p-5">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl text-indigo-500 font-bold mb-2">多音字宝库</h1>
+            <p class="text-gray-400">点击卡片复习，盖出稳固的大楼！</p>
+        </header>
+
+        <div class="max-w-2xl mx-auto space-y-6">
+            <!-- 1. 露 -->
+            <div class="study-card border-blue-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">💧</span>
+                    <h2 class="text-2xl font-bold">露</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">lù</span> 露水 (Embun)：草地上的露水。</p>
+                    <p><span class="pinyin-tag">lòu</span> 露面 (Muncul)：他好久没露面了。</p>
+                </div>
+            </div>
+
+            <!-- 2. 切 -->
+            <div class="study-card border-green-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">🔪</span>
+                    <h2 class="text-2xl font-bold">切</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">qiē</span> 切菜 (Memotong)：帮妈妈切胡萝卜。</p>
+                    <p><span class="pinyin-tag">qiè</span> 急切 (Segera)：心情非常急切。</p>
+                </div>
+            </div>
+
+            <!-- 3. 数 -->
+            <div class="study-card border-yellow-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">🔢</span>
+                    <h2 class="text-2xl font-bold">数</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">shǔ</span> 数数 (Mengira)：数一数有几个气球。</p>
+                    <p><span class="pinyin-tag">shù</span> 数字 (Nombor)：我认识很多数字。</p>
+                </div>
+            </div>
+
+            <!-- 4. 行 -->
+            <div class="study-card border-purple-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">🚶</span>
+                    <h2 class="text-2xl font-bold">行</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">xíng</span> 行走 (Berjalan)：在马路上行走。</p>
+                    <p><span class="pinyin-tag">háng</span> 银行 (Bank)：去银行存钱。</p>
+                </div>
+            </div>
+
+            <!-- 5. 相传/识相 -->
+            <div class="study-card border-red-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">📜</span>
+                    <h2 class="text-2xl font-bold">相</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">xiāng</span> 相传 (Dikatakan)：相传这里有宝藏。</p>
+                    <p><span class="pinyin-tag">xiàng</span> 识相 (Tahu diri)：他是一个识相的人。</p>
+                </div>
+            </div>
+
+            <!-- 6. 打不着/着想 -->
+            <div class="study-card border-orange-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">🎯</span>
+                    <h2 class="text-2xl font-bold">着</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">zháo</span> 打不着 (Tak kena)：球太高了打不着。</p>
+                    <p><span class="pinyin-tag">zhuó</span> 着想 (Fikir demi)：要为他人着想。</p>
+                </div>
+            </div>
+
+            <!-- 7. 横 -->
+            <div class="study-card border-teal-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">➖</span>
+                    <h2 class="text-2xl font-bold">横</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">héng</span> 横排 (Melintang)：操场上有几条横线。</p>
+                    <p><span class="pinyin-tag">hèng</span> 蛮横 (Kasar)：那个人的口气很蛮横。</p>
+                </div>
+            </div>
+
+            <!-- 8. 累 -->
+            <div class="study-card border-pink-400">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">😫</span>
+                    <h2 class="text-2xl font-bold">累</h2>
+                </div>
+                <div class="space-y-3">
+                    <p><span class="pinyin-tag">lèi</span> 劳累 (Letih)：干完活感到很劳累。</p>
+                    <p><span class="pinyin-tag">lěi</span> 积累 (Mengumpul)：积累丰富的知识。</p>
+                </div>
+            </div>
+            
+            <p class="text-center text-gray-400 pb-10">已经读完了所有内容，快去盖大楼吧！</p>
+        </div>
+    </div>
+
+    <!-- 游戏分页 -->
+    <div id="page-game" class="page flex flex-col items-center">
+        <!-- 题目气泡 -->
+        <div class="w-11/12 max-w-md bg-white rounded-3xl p-4 shadow-xl mt-4 border-b-4 border-indigo-200">
+            <div class="flex justify-between text-sm font-bold text-indigo-500 mb-2">
+                <span>❤️ 生命: <span id="hp">3</span></span>
+                <span>🏆 分数: <span id="score">0</span></span>
+            </div>
+            <p id="sentence" class="text-center text-lg font-bold text-gray-700">点击下方按钮开始</p>
+            <p id="translation" class="text-center text-xs text-gray-400 italic mb-4"></p>
+            <div id="choices" class="flex justify-center gap-4"></div>
+        </div>
+
+        <div class="relative w-full flex-grow mt-4 flex justify-center items-start">
+            <canvas id="game-canvas"></canvas>
+            
+            <div id="start-overlay" class="absolute inset-0 bg-indigo-50/50 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center cursor-pointer">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg animate-bounce mb-4">
+                    <span class="text-indigo-500 text-2xl font-black">GO</span>
+                </div>
+                <h2 class="text-2xl font-bold text-indigo-600">梦幻盖楼挑战</h2>
+                <p class="text-indigo-400 text-sm mt-2">选对读音，放下楼层！<br>不要让大楼倒塌哦</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav>
+        <button onclick="showPage('study')" id="nav-study" class="nav-btn active">
+            <span class="text-2xl">📚</span>
+            <span>学习区</span>
+        </button>
+        <button onclick="showPage('game')" id="nav-game" class="nav-btn">
+            <span class="text-2xl">🏗️</span>
+            <span>盖大楼</span>
+        </button>
+    </nav>
+
+    <!-- 结算弹窗 -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[200] p-6">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center">
+            <h2 class="text-3xl font-bold text-indigo-500 mb-4">大楼完工！</h2>
+            <div class="bg-indigo-50 p-4 rounded-xl mb-6">
+                <p class="text-xl">🏢 高度: <span id="res-height" class="font-bold">0</span> 层</p>
+                <p class="text-xl">✨ 分数: <span id="res-score" class="font-bold">0</span></p>
+            </div>
+            <button onclick="resetGame()" class="bg-indigo-500 text-white w-full py-4 rounded-2xl text-xl font-bold shadow-lg active:scale-95">再建一座！</button>
+        </div>
+    </div>
+
+    <script>
+        const quizList = [
+            { q: "清晨，【露】水在草尖跳舞。", a: "lù", opts: ["lù", "lòu"], tr: "Embun di rumput." },
+            { q: "他一说话就【露】了马脚。", a: "lòu", opts: ["lù", "lòu"], tr: "Muncul kebenaran." },
+            { q: "妈妈在厨房忙着【切】菜。", a: "qiē", opts: ["qiē", "qiè"], tr: "Ibu memotong sayur." },
+            { q: "这个消息非常迫【切】。", a: "qiè", opts: ["qiē", "qiè"], tr: "Berita ini mendesak." },
+            { q: "星星多得【数】不完。", a: "shǔ", opts: ["shǔ", "shù"], tr: "Bintang tak terkira." },
+            { q: "这是一个奇【数】。", a: "shù", opts: ["shǔ", "shù"], tr: "Ini nombor ganjil." },
+            { q: "他在人行道上【行】走。", a: "xíng", opts: ["xíng", "háng"], tr: "Berjalan di siar kaki." },
+            { q: "这一【行】字写歪了。", a: "háng", opts: ["xíng", "háng"], tr: "Baris tulisan ini senget." },
+            { q: "【相】传很久以前有一口古井。", a: "xiāng", opts: ["xiāng", "xiàng"], tr: "Dikatakan menurut tradisi." },
+            { q: "你要做一个【识相】的人。", a: "xiàng", opts: ["xiāng", "xiàng"], tr: "Perlu tahu diri." },
+            { q: "草丛里有颗球我够不【着】。", a: "zháo", opts: ["zháo", "zhuó"], tr: "Tak sampai/kena." },
+            { q: "要多为身边的朋友【着】想。", a: "zhuó", opts: ["zháo", "zhuó"], tr: "Fikir demi orang lain." },
+            { q: "黑板上画了几道【横】线。", a: "héng", opts: ["héng", "hèng"], tr: "Garis melintang." },
+            { q: "他说话的样子很蛮【横】。", a: "hèng", opts: ["héng", "hèng"], tr: "Sangat kasar/biadab." },
+            { q: "工作了一整天好【累】啊。", a: "lèi", opts: ["lèi", "lěi"], tr: "Sangat letih/penat." },
+            { q: "我们要一点点【累】积经验。", a: "lěi", opts: ["lèi", "lěi"], tr: "Mengumpul pengalaman." }
+        ];
+
+        // 页面切换
+        function showPage(p) {
+            document.body.className = p === 'game' ? 'active-game' : '';
+            document.getElementById('nav-study').classList.toggle('active', p === 'study');
+            document.getElementById('nav-game').classList.toggle('active', p === 'game');
+            if(p === 'game' && !gameActive) {
+                // 初始化画布大小
+                resizeCanvas();
+            }
+        }
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let gameActive = false, score = 0, hp = 3;
+        let floors = [], currentQ = null;
+        let moving = { x: 0, y: 0, w: 140, dir: 1, speed: 1.5 };
+        let cameraY = 0, animId;
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = Math.min(container.clientWidth - 40, 360);
+            canvas.height = container.clientHeight - 20;
+        }
+
+        document.getElementById('start-overlay').onclick = () => {
+            document.getElementById('start-overlay').classList.add('hidden');
+            startGame();
+        };
+
+        function startGame() {
+            gameActive = true;
+            score = 0; hp = 3; cameraY = 0;
+            floors = [{ x: (canvas.width - 140)/2, y: canvas.height - 60, w: 140, color: '#a0c4ff' }];
+            moving = { x: 0, y: canvas.height - 100, w: 140, dir: 1, speed: 1.5 };
+            updateUI();
+            nextQuiz();
+            gameLoop();
+        }
+
+        function nextQuiz() {
+            currentQ = quizList[Math.floor(Math.random() * quizList.length)];
+            document.getElementById('sentence').innerText = currentQ.q;
+            document.getElementById('translation').innerText = "(" + currentQ.tr + ")";
+            const choices = document.getElementById('choices');
+            choices.innerHTML = '';
+            currentQ.opts.forEach(o => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn";
+                btn.innerText = o;
+                btn.onclick = () => checkAns(o);
+                choices.appendChild(btn);
+            });
+        }
+
+        function checkAns(ans) {
+            if(!gameActive) return;
+            if(ans === currentQ.a) {
+                placeFloor();
+            } else {
+                hp--;
+                updateUI();
+                if(hp <= 0) gameOver();
+                else alert("答错了，仔细看看卡片哦！");
+            }
+        }
+
+        function placeFloor() {
+            const last = floors[floors.length - 1];
+            const diff = moving.x - last.x;
+
+            if (Math.abs(diff) >= moving.w) {
+                gameOver();
+                return;
+            }
+
+            const newW = moving.w - Math.abs(diff);
+            const newX = diff > 0 ? moving.x : last.x;
+
+            floors.push({ 
+                x: newX, y: moving.y, w: newW, 
+                color: `hsl(${Math.random() * 360}, 70%, 80%)` 
+            });
+
+            score += 10 + Math.floor(newW / 10);
+            moving.w = newW;
+            moving.y -= 40;
+            moving.x = moving.dir === 1 ? 0 : canvas.width - newW;
+            // 控制速度，平稳为主
+            moving.speed = Math.min(3, 1.5 + (floors.length / 10));
+            
+            if(floors.length > 5) cameraY += 40;
+            
+            updateUI();
+            nextQuiz();
+        }
+
+        function updateUI() {
+            document.getElementById('hp').innerText = hp;
+            document.getElementById('score').innerText = score;
+        }
+
+        function gameOver() {
+            gameActive = false;
+            cancelAnimationFrame(animId);
+            document.getElementById('res-height').innerText = floors.length - 1;
+            document.getElementById('res-score').innerText = score;
+            document.getElementById('game-over-modal').classList.remove('hidden');
+            document.getElementById('game-over-modal').classList.add('flex');
+        }
+
+        function resetGame() {
+            document.getElementById('game-over-modal').classList.add('hidden');
+            document.getElementById('start-overlay').classList.remove('hidden');
+        }
+
+        function gameLoop() {
+            if(!gameActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(0, cameraY);
+
+            // 画背景云 (装饰)
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            ctx.beginPath(); ctx.arc(50, 100-cameraY*0.5, 30, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(300, 250-cameraY*0.5, 40, 0, Math.PI*2); ctx.fill();
+
+            // 已有层
+            floors.forEach((f, i) => {
+                ctx.fillStyle = f.color;
+                drawRect(ctx, f.x, f.y, f.w, 38, 12);
+                ctx.fill();
+                // 窗户
+                ctx.fillStyle = "rgba(255,255,255,0.5)";
+                for(let j=10; j<f.w-10; j+=25) ctx.fillRect(f.x + j, f.y + 10, 15, 18);
+            });
+
+            // 移动层
+            moving.x += moving.speed * moving.dir;
+            if(moving.x + moving.w > canvas.width || moving.x < 0) moving.dir *= -1;
+            
+            ctx.fillStyle = "#fff";
+            drawRect(ctx, moving.x, moving.y, moving.w, 38, 12);
+            ctx.fill();
+            ctx.strokeStyle = "#667eea";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+            animId = requestAnimationFrame(gameLoop);
+        }
+
+        function drawRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
