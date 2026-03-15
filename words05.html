@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="zh" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>词语战场：传统游戏大救援</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+
+        body {
+            font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', cursive;
+            background: #0a0a0a;
+            user-select: none;
+        }
+
+        .game-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        canvas { display: block; }
+
+        /* Crosshair */
+        #crosshair {
+            position: fixed;
+            width: 36px; height: 36px;
+            border: 2px solid #facc15;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #crosshair::before, #crosshair::after {
+            content: ''; position: absolute; background: #facc15;
+        }
+        #crosshair::before { width: 12px; height: 2px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+        #crosshair::after { width: 2px; height: 12px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+        /* HUD */
+        .hud-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 20; pointer-events: none;
+        }
+        .hud-item {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(250,204,21,0.4);
+            border-radius: 8px;
+            padding: 6px 14px;
+            color: #fff;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* Question panel */
+        .q-panel {
+            position: absolute;
+            top: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 20; pointer-events: auto;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        .q-card {
+            background: rgba(255,255,255,0.98);
+            border: 4px solid #ef4444;
+            border-radius: 14px;
+            padding: 20px 36px;
+            box-shadow: 0 10px 0 #b91c1c, 0 20px 40px rgba(0,0,0,0.5);
+            animation: bounce-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes bounce-in {
+            0% { opacity: 0; transform: scale(0.6); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute; inset: 0;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 50;
+            background: rgba(0,0,0,0.85);
+        }
+        .overlay-card {
+            text-align: center; color: #fff;
+            max-width: 420px; padding: 40px;
+        }
+
+        .fire-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #fff;
+            padding: 14px 48px;
+            font-size: 22px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            border: none; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 5px 0 #991b1b, 0 8px 20px rgba(239,68,68,0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            pointer-events: auto;
+        }
+        .fire-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #991b1b;
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 5px 0 #92400e, 0 8px 20px rgba(245,158,11,0.4);
+        }
+        .gold-btn:active {
+            box-shadow: 0 1px 0 #92400e;
+        }
+
+        /* Floating targets */
+        .target-bubble {
+            position: absolute;
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-size: 22px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 15;
+            transition: transform 0.08s;
+            border: 3px solid rgba(250,204,21,0.3);
+            background: rgba(30, 30, 30, 0.85);
+            color: #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.7), inset 0 0 8px rgba(250,204,21,0.1);
+            animation: float-in 0.4s ease-out;
+        }
+        .target-bubble:hover { 
+            transform: scale(1.08);
+            border-color: rgba(250,204,21,0.6);
+            background: rgba(40, 40, 40, 0.95);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.7), inset 0 0 12px rgba(250,204,21,0.2), 0 0 20px rgba(250,204,21,0.3);
+        }
+        .target-bubble.correct { 
+            background: rgba(30, 30, 30, 0.85);
+            border-color: rgba(250,204,21,0.3);
+        }
+        .target-bubble.wrong { 
+            background: rgba(30, 30, 30, 0.85);
+            border-color: rgba(250,204,21,0.3);
+        }
+
+        @keyframes float-in {
+            0% { opacity: 0; transform: scale(0.3) translateY(30px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes hit-correct {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.4); background: rgba(74, 222, 128, 0.9); box-shadow: 0 0 30px rgba(74, 222, 128, 0.8); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        @keyframes hit-wrong {
+            0% { transform: scale(1); }
+            20% { transform: scale(1.1) rotate(10deg); background: rgba(239, 68, 68, 0.85); border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 20px rgba(239, 68, 68, 0.7); }
+            100% { transform: scale(0.6) rotate(360deg); opacity: 0; }
+        }
+
+        .hit-good { animation: hit-correct 0.45s ease-out forwards; pointer-events: none; }
+        .hit-bad { animation: hit-wrong 0.4s ease-out forwards; pointer-events: none; }
+
+        /* Score popup */
+        @keyframes score-pop {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+        }
+        .score-pop {
+            position: absolute; z-index: 30;
+            font-size: 28px; font-weight: bold;
+            pointer-events: none;
+            animation: score-pop 0.7s ease-out forwards;
+        }
+
+        /* Muzzle flash */
+        @keyframes flash {
+            0% { opacity: 1; transform: translate(-50%,-50%) scale(0.5); }
+            100% { opacity: 0; transform: translate(-50%,-50%) scale(2); }
+        }
+        .muzzle-flash {
+            position: fixed; z-index: 98;
+            width: 30px; height: 30px;
+            background: radial-gradient(circle, #fff 0%, #facc15 40%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: flash 0.15s ease-out forwards;
+        }
+
+        /* Battle Royale Terrain */
+        .terrain {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 40%;
+            z-index: 2; pointer-events: none;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(34,139,34,0.3) 15%,
+                rgba(85,107,47,0.6) 35%,
+                rgba(34,82,34,0.85) 65%,
+                #1a3d1a 100%
+            );
+            box-shadow: inset 0 -20px 40px rgba(0,0,0,0.6);
+        }
+        
+        /* Terrain detail layers */
+        .terrain::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(90deg, 
+                    transparent, transparent 60px, 
+                    rgba(0,0,0,0.1) 60px, rgba(0,0,0,0.1) 62px),
+                repeating-linear-gradient(0deg,
+                    transparent, transparent 40px,
+                    rgba(0,0,0,0.05) 40px, rgba(0,0,0,0.05) 42px);
+            pointer-events: none;
+        }
+        
+        /* Distant mountains */
+        .terrain::after {
+            content: '';
+            position: absolute;
+            bottom: 25%; left: -5%; right: -5%;
+            height: 35%;
+            background: 
+                radial-gradient(ellipse 800px 200px at 20% 100%, rgba(60,100,60,0.4) 0%, transparent 40%),
+                radial-gradient(ellipse 900px 220px at 80% 100%, rgba(50,80,50,0.4) 0%, transparent 45%);
+            filter: blur(2px);
+        }
+        
+        /* Sky layers - dramatic gradient */
+        .sky-back {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(180deg,
+                #87ceeb 0%,
+                #b0d9ff 20%,
+                #d4e4f7 45%,
+                #e8d5c4 70%,
+                #d9a574 85%,
+                #a0826d 100%
+            );
+            pointer-events: none;
+        }
+        
+        /* Cloud layer - animated */
+        .cloud-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: rgba(255,255,255,0.7);
+            border-radius: 100px;
+            filter: blur(8px);
+        }
+        
+        @keyframes drift-slow {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(120%); }
+        }
+        
+        @keyframes drift-med {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .cloud.slow { animation: drift-slow 80s linear infinite; }
+        .cloud.med { animation: drift-med 60s linear infinite; }
+
+        /* Stars bg */
+        .star-field {
+            position: absolute; inset: 0; z-index: 1; pointer-events: none;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        /* Damage flash */
+        @keyframes damage-flash {
+            0% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
+        .damage-overlay {
+            position: absolute; inset: 0; z-index: 40;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(239,68,68,0.6) 100%);
+            pointer-events: none; opacity: 0;
+        }
+        .damage-overlay.active {
+            animation: damage-flash 0.4s ease-out forwards;
+        }
+
+        /* Combo */
+        .combo-display {
+            position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%);
+            z-index: 25; pointer-events: none;
+            font-size: 20px; color: #facc15;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .combo-display.visible { opacity: 1; }
+
+        /* Level indicator */
+        @keyframes level-announce {
+            0% { opacity: 0; transform: translate(-50%,-50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
+        }
+        .level-announce {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            z-index: 35; pointer-events: none;
+            font-size: 48px; color: #facc15;
+            text-shadow: 0 4px 20px rgba(250,204,21,0.6), 0 0 40px rgba(250,204,21,0.3);
+            animation: level-announce 1.8s ease-out forwards;
+        }
+    </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="game-wrap" id="gameWrap">
+   <!-- Background layers -->
+   <div class="sky-back"></div>
+   <div class="cloud-layer" id="cloudLayer"></div>
+   <div class="star-field" id="starField"></div>
+   <div class="terrain"></div><!-- Damage overlay -->
+   <div class="damage-overlay" id="damageOverlay"></div><!-- Crosshair -->
+   <div id="crosshair"></div><!-- HUD -->
+   <div class="hud-bar">
+    <div class="hud-item">
+     🎯 <span id="scoreDisplay">0</span>
+    </div>
+    <div class="hud-item" id="gameTitle" style="border-color: rgba(250,204,21,0.7);">
+     词语战场
+    </div>
+    <div class="hud-item">
+     ❤️ <span id="hpDisplay">●●●</span>
+    </div>
+   </div><!-- Question Panel -->
+   <div class="q-panel" id="qPanel" style="display:none;">
+    <div class="q-card">
+     <div class="text-sm text-gray-500 mb-1" id="levelLabel">
+      第1关
+     </div>
+     <div class="text-2xl font-bold text-gray-800" id="promptText"></div>
+     <div class="text-sm text-blue-600 font-bold mt-1" id="hintText"></div>
+    </div>
+   </div><!-- Target area -->
+   <div id="targetArea" style="position:absolute;inset:0;z-index:14;pointer-events:none;"></div><!-- Combo display -->
+   <div class="combo-display" id="comboDisplay">
+    🔥 连击 x<span id="comboCount">0</span>
+   </div><!-- Start screen -->
+   <div class="overlay" id="startScreen">
+    <div class="overlay-card">
+     <div style="font-size:64px;color:#facc15;text-shadow:0 4px 20px rgba(250,204,21,0.5);" id="titleDisplay">
+      词语战场
+     </div>
+     <p style="font-family:'Noto Sans SC',sans-serif;font-size:16px;color:#9ca3af;margin:16px 0 8px;">FREE FIRE 风格 · 词语生存战</p>
+     <div style="font-size:14px;color:#6b7280;margin-bottom:28px;font-family:'Noto Sans SC',sans-serif;">
+      🎯 射击正确的词语完成挑战<br>
+       ❤️ 3条命 · 答错扣血 · 坚持到最后！
+     </div><button class="fire-btn" onclick="startGame()">🔥 开始战斗</button>
+    </div>
+   </div><!-- Game Over screen -->
+   <div class="overlay" id="overScreen" style="display:none;">
+    <div class="overlay-card">
+     <div style="font-size:48px;margin-bottom:12px;">
+      💥
+     </div>
+     <div style="font-size:36px;color:#ef4444;">
+      阵亡！
+     </div>
+     <div style="font-size:18px;color:#9ca3af;margin:16px 0;">
+      最终得分: <span id="finalScore" style="color:#facc15;font-size:28px;">0</span>
+     </div>
+     <div style="font-size:14px;color:#6b7280;margin-bottom:8px;">
+      最高连击: <span id="finalCombo" style="color:#fb923c;">0</span> · 通过关卡: <span id="finalLevel" style="color:#34d399;">0</span>
+     </div><button class="fire-btn gold-btn" onclick="restartGame()">🔄 再来一局</button>
+    </div>
+   </div>
+  </div>
+  <script>
+// ============ CONFIG & SDK ============
+const defaultConfig = {
+    game_title: '词语战场',
+    background_color: '#0f172a',
+    surface_color: '#ffffff',
+    text_color: '#1e293b',
+    primary_action_color: '#ef4444',
+    secondary_action_color: '#facc15'
+};
+
+function applyConfig(cfg) {
+    const title = cfg.game_title || defaultConfig.game_title;
+    const el1 = document.getElementById('titleDisplay');
+    const el2 = document.getElementById('gameTitle');
+    if (el1) el1.textContent = title;
+    if (el2) el2.textContent = title;
+    document.title = title;
+
+    const bg = cfg.background_color || defaultConfig.background_color;
+    const surface = cfg.surface_color || defaultConfig.surface_color;
+    const text = cfg.text_color || defaultConfig.text_color;
+    const primary = cfg.primary_action_color || defaultConfig.primary_action_color;
+    const secondary = cfg.secondary_action_color || defaultConfig.secondary_action_color;
+
+    document.querySelectorAll('.q-card').forEach(el => {
+        el.style.background = surface;
+        el.style.borderColor = primary;
+    });
+    document.querySelectorAll('.fire-btn:not(.gold-btn)').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primary}, ${primary})`;
+    });
+    document.getElementById('crosshair').style.borderColor = secondary;
+
+    const promEl = document.getElementById('promptText');
+    if (promEl) promEl.style.color = text;
+}
+
+if (window.elementSdk) {
+    window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (cfg) => applyConfig(cfg),
+        mapToCapabilities: (cfg) => ({
+            recolorables: [
+                { get: () => cfg.background_color || defaultConfig.background_color, set: v => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+                { get: () => cfg.surface_color || defaultConfig.surface_color, set: v => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+                { get: () => cfg.text_color || defaultConfig.text_color, set: v => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+                { get: () => cfg.primary_action_color || defaultConfig.primary_action_color, set: v => { cfg.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+                { get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color, set: v => { cfg.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (cfg) => new Map([
+            ['game_title', cfg.game_title || defaultConfig.game_title]
+        ])
+    });
+} else {
+    applyConfig(defaultConfig);
+}
+
+// ============ QUESTION BANK ============
+const questionBank = [
+    { type: 'fill', prompt: '操场上的草地一片___，最适合在那里玩跳格子了。', answer: '翠绿', wrong: ['深蓝','金黄','粉红'], hint: 'Hijau zamrud (像翡翠一样的绿色)', category: '传统游戏词语', icon: '🍃' },
+    { type: 'fill', prompt: '躲在学校花园的___后，谁也找不到。', answer: '矮丛', wrong: ['高树','灌木','森林'], hint: 'Semak samun (聚集生长的小树木)', category: '传统游戏词语', icon: '🌿' },
+    { type: 'fill', prompt: '踢毽子时，毽子拍打在脚面上，发出___的响声。', answer: '清脆', wrong: ['沉闷','嘶哑','尖锐'], hint: 'Nyaring/Merdu (声音清亮悦耳)', category: '传统游戏词语', icon: '🎵' },
+    { type: 'fill', prompt: '为了赢得比赛，我快速地___过绳圈，顺利完成了游戏。', answer: '钻', wrong: ['跳','跑','爬'], hint: 'Masuk/Menembusi (穿过、进入)', category: '传统游戏词语', icon: '⭕' },
+    { type: 'meaning', prompt: '找出意思是"两手两足的总称"的词语', answer: '四肢', wrong: ['身体','头颈','肌肉'], hint: 'Anggota badan (玩传统游戏时需要活动的部位)', category: '传统游戏词语', icon: '🤸' },
+    { type: 'meaning', prompt: '找出意思是"受刺激而激动愤怒"的词语', answer: '激愤', wrong: ['开心','困倦','冷静'], hint: 'Geram/Marah (游戏中有人违反规则时的情绪)', category: '传统游戏词语', icon: '😠' },
+    { type: 'fill', prompt: '一场游戏下来，我的___上布满了汗珠，但大家都玩得很开心。', answer: '额头', wrong: ['脸颊','手臂','背部'], hint: 'Dahi (眉毛以上的部分)', category: '传统游戏词语', icon: '😓' },
+    { type: 'meaning', prompt: '找出意思是"理解的能力"的词语', answer: '领悟力', wrong: ['力量','速度','反应'], hint: 'Daya pemahaman (姐姐只看一遍说明就学会了玩)', category: '传统游戏词语', icon: '💡' },
+    { type: 'fill', prompt: '我们不能因为沉迷电子游戏而___练习传统游戏，那样会失去文化乐趣。', answer: '疏于', wrong: ['专注于','擅长于','忠于'], hint: 'Lalai/Cuai (忽略)', category: '传统游戏词语', icon: '📚' },
+    { type: 'meaning', prompt: '找出意思是"全、都"的词语', answer: '统统', wrong: ['一个个','轮流','分别'], hint: 'Semua/Segala-galanya (下课了，大家把书包都放在桌上)', category: '传统游戏词语', icon: '🎒' },
+    { type: 'fill', prompt: '虽然天气___，但这并没有影响我们玩陀螺的兴致。', answer: '酷热', wrong: ['温暖','清爽','寒冷'], hint: 'Panas terik (天气非常热)', category: '传统游戏词语', icon: '☀️' },
+    { type: 'meaning', prompt: '找出意思是"一般规定之外"的词语', answer: '例外', wrong: ['规则','参与','异议'], hint: 'Pengecualian (大家都必须遵守游戏规则，谁也不___)', category: '传统游戏词语', icon: '⚖️' },
+    { type: 'fill', prompt: '上课钟声响了，组长___我们快点把器材收拾好。', answer: '催促', wrong: ['帮助','指导','劝说'], hint: 'Mendesak/Menggesa (加快速度)', category: '传统游戏词语', icon: '⏰' },
+    { type: 'meaning', prompt: '找出意思是"共同参加活动的人"的词语', answer: '伙伴', wrong: ['朋友','老师','家人'], hint: 'Rakan (有了他们的配合，我们在比赛中获得了冠军)', category: '传统游戏词语', icon: '👥' },
+];
+
+// ============ GAME STATE ============
+let score = 0, hp = 3, level = 0, combo = 0, maxCombo = 0;
+let gameActive = false;
+let usedQuestions = [];
+let currentQ = null;
+let targets = [];
+let moveTimers = [];
+
+function createStars() {
+    const field = document.getElementById('starField');
+    field.innerHTML = '';
+    field.style.display = 'none'; // Hide stars in daytime sky
+}
+
+// ============ CLOUDS ============
+function createClouds() {
+    const layer = document.getElementById('cloudLayer');
+    layer.innerHTML = '';
+    const h = window.innerHeight;
+    
+    const cloudCount = 8;
+    for (let i = 0; i < cloudCount; i++) {
+        const cloud = document.createElement('div');
+        cloud.className = 'cloud ' + (i % 2 === 0 ? 'slow' : 'med');
+        const size = 60 + Math.random() * 80;
+        const width = size * 2.5;
+        cloud.style.width = width + 'px';
+        cloud.style.height = size + 'px';
+        cloud.style.top = (h * 0.1 + Math.random() * h * 0.25) + 'px';
+        cloud.style.left = Math.random() * 120 + '%';
+        cloud.style.animationDelay = -(Math.random() * 40) + 's';
+        cloud.style.opacity = 0.5 + Math.random() * 0.3;
+        layer.appendChild(cloud);
+    }
+}
+
+// ============ BG CANVAS (removed - using sky gradient) ============
+function initBgCanvas() {
+    // No canvas needed - sky gradient handles it
+}
+
+// ============ CROSSHAIR ============
+document.addEventListener('mousemove', e => {
+    const ch = document.getElementById('crosshair');
+    ch.style.left = e.clientX + 'px';
+    ch.style.top = e.clientY + 'px';
+});
+
+// ============ CORE GAME ============
+function getNextQuestion() {
+    const available = questionBank.filter((_, i) => !usedQuestions.includes(i));
+    if (available.length === 0) usedQuestions = [];
+    const pool = available.length > 0 ? available : questionBank;
+    const idx = questionBank.indexOf(pool[Math.floor(Math.random() * pool.length)]);
+    usedQuestions.push(idx);
+    return questionBank[idx];
+}
+
+function spawnTargets(q) {
+    const area = document.getElementById('targetArea');
+    area.innerHTML = '';
+    targets = [];
+    moveTimers.forEach(clearInterval);
+    moveTimers = [];
+
+    const allOptions = [q.answer, ...q.wrong].sort(() => Math.random() - 0.5);
+    const wrap = document.getElementById('gameWrap');
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+
+    // Safe zone: question card is at top 60px with ~160px height = ~220px total
+    // Keep answers strictly below that, starting from 250px down
+    const minY = 250;
+    const maxY = h * 0.90;
+    const margin = 20;
+
+    const positions = [];
+
+    allOptions.forEach((text, i) => {
+        const bubble = document.createElement('div');
+        bubble.className = 'target-bubble ' + (text === q.answer ? 'correct' : 'wrong');
+        bubble.textContent = text;
+        bubble.dataset.answer = text;
+        bubble.style.fontSize = text.length > 4 ? '17px' : '22px';
+
+        // Position with collision avoidance
+        let x, y, attempts = 0;
+        const bw = Math.max(80, text.length * 28 + 44);
+        const bh = 50;
+        do {
+            x = margin + Math.random() * (w - bw - margin * 2);
+            y = minY + Math.random() * (maxY - minY - bh);
+            attempts++;
+        } while (attempts < 30 && positions.some(p =>
+            Math.abs(p.x - x) < bw + 20 && Math.abs(p.y - y) < bh + 10
+        ));
+        positions.push({ x, y });
+
+        bubble.style.left = x + 'px';
+        bubble.style.top = y + 'px';
+
+        bubble.addEventListener('click', (e) => handleShot(e, text, q, bubble));
+        bubble.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleShot(e, text, q, bubble);
+        }, { passive: false });
+
+        area.appendChild(bubble);
+        targets.push(bubble);
+
+        // Continuous horizontal drift - no vertical movement, always facing forward
+        let dx = (Math.random() - 0.5) * 1.5;
+        const timer = setInterval(() => {
+            if (!gameActive) return;
+            let cx = parseFloat(bubble.style.left);
+            const cy = parseFloat(bubble.style.top);
+            cx += dx;
+            // Bounce at edges
+            if (cx < margin || cx > w - bw - margin) dx *= -1;
+            bubble.style.left = cx + 'px';
+            bubble.style.top = cy + 'px';
+            // No rotation - keep flat and facing forward
+            bubble.style.transform = 'none';
+        }, 40);
+        moveTimers.push(timer);
+    });
+}
+
+function handleShot(e, text, q, bubble) {
+    if (!gameActive) return;
+
+    // Muzzle flash
+    const rect = bubble.getBoundingClientRect();
+    const flash = document.createElement('div');
+    flash.className = 'muzzle-flash';
+    flash.style.left = (rect.left + rect.width / 2) + 'px';
+    flash.style.top = (rect.top + rect.height / 2) + 'px';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 200);
+
+    if (text === q.answer) {
+        // Correct!
+        bubble.classList.add('hit-good');
+        combo++;
+        if (combo > maxCombo) maxCombo = combo;
+        const points = 100 + combo * 20;
+        score += points;
+        updateHUD();
+
+        // Score popup
+        showScorePop(rect, '+' + points, '#4ade80');
+        updateCombo();
+
+        // Remove all targets
+        targets.forEach(t => {
+            if (t !== bubble) { t.classList.add('hit-good'); }
+        });
+
+        setTimeout(() => nextRound(), 600);
+    } else {
+        // Wrong
+        bubble.classList.add('hit-bad');
+        combo = 0;
+        updateCombo();
+        hp--;
+        updateHUD();
+        triggerDamage();
+        showScorePop(rect, '✗', '#ef4444');
+
+        if (hp <= 0) {
+            setTimeout(() => gameOver(), 500);
+        }
+    }
+}
+
+function showScorePop(rect, text, color) {
+    const pop = document.createElement('div');
+    pop.className = 'score-pop';
+    pop.textContent = text;
+    pop.style.color = color;
+    pop.style.left = rect.left + rect.width / 2 - 30 + 'px';
+    pop.style.top = rect.top - 10 + 'px';
+    pop.style.textShadow = `0 2px 8px ${color}40`;
+    document.getElementById('gameWrap').appendChild(pop);
+    setTimeout(() => pop.remove(), 800);
+}
+
+function triggerDamage() {
+    const overlay = document.getElementById('damageOverlay');
+    overlay.classList.remove('active');
+    void overlay.offsetWidth;
+    overlay.classList.add('active');
+}
+
+function updateCombo() {
+    const cd = document.getElementById('comboDisplay');
+    const cc = document.getElementById('comboCount');
+    cc.textContent = combo;
+    if (combo >= 2) {
+        cd.classList.add('visible');
+    } else {
+        cd.classList.remove('visible');
+    }
+}
+
+function updateHUD() {
+    document.getElementById('scoreDisplay').textContent = score;
+    const hearts = '●'.repeat(Math.max(0, hp)) + '○'.repeat(Math.max(0, 3 - hp));
+    document.getElementById('hpDisplay').textContent = hearts;
+    document.getElementById('hpDisplay').style.color = hp <= 1 ? '#ef4444' : '#fb923c';
+}
+
+function nextRound() {
+    if (!gameActive) return;
+    level++;
+
+    // Show level announcement every 5 rounds
+    if (level % 5 === 0) {
+        showLevelAnnounce();
+    }
+
+    currentQ = getNextQuestion();
+    document.getElementById('levelLabel').textContent = `第${level}关 · ${currentQ.category}`;
+    document.getElementById('promptText').textContent = currentQ.prompt;
+    document.getElementById('hintText').textContent = '💡 ' + currentQ.hint;
+    spawnTargets(currentQ);
+}
+
+function showLevelAnnounce() {
+    const el = document.createElement('div');
+    el.className = 'level-announce';
+    el.textContent = `🔥 第${level}关！`;
+    document.getElementById('gameWrap').appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+}
+
+function startGame() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('overScreen').style.display = 'none';
+    document.getElementById('qPanel').style.display = 'block';
+    document.getElementById('crosshair').style.opacity = '1';
+
+    score = 0; hp = 3; level = 0; combo = 0; maxCombo = 0;
+    usedQuestions = [];
+    gameActive = true;
+    updateHUD();
+    updateCombo();
+    nextRound();
+}
+
+function gameOver() {
+    gameActive = false;
+    document.getElementById('crosshair').style.opacity = '0';
+    document.getElementById('qPanel').style.display = 'none';
+    document.getElementById('targetArea').innerHTML = '';
+    moveTimers.forEach(clearInterval);
+
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalCombo').textContent = maxCombo;
+    document.getElementById('finalLevel').textContent = level;
+    document.getElementById('overScreen').style.display = 'flex';
+}
+
+function restartGame() {
+    startGame();
+}
+
+// ============ INIT ============
+window.addEventListener('resize', () => {
+    initBgCanvas();
+    createClouds();
+});
+createStars();
+createClouds();
+initBgCanvas();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9dca744ee6e935be',t:'MTc3MzU2NjU1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
