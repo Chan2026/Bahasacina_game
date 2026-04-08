@@ -144,7 +144,7 @@
     </div>
 
     <script>
-        // 词库配置
+        // 词库配置：根据用户反馈修正了轻声词的归类
         const wordList = [
             // 四声 (bù) - 在一、二、三声前
             { word: "不好", answer: "bù" },
@@ -153,9 +153,6 @@
             { word: "不同", answer: "bù" },
             { word: "不平", answer: "bù" },
             { word: "不满", answer: "bù" },
-            { word: "对不起", answer: "bù" }, // 变调规律：在三声前读四声
-            { word: "了不起", answer: "bù" }, // 变调规律：在三声前读四声
-            { word: "受不了", answer: "bù" }, // 变调规律：在三声前读四声
             // 二声 (bú) - 在四声（去声）前
             { word: "不是", answer: "bú" },
             { word: "不去", answer: "bú" },
@@ -165,7 +162,10 @@
             { word: "不会", answer: "bú" },
             { word: "不要", answer: "bú" },
             { word: "不看", answer: "bú" },
-            // 轻声 (bu) - 仅用于重叠词
+            // 轻声 (bu) - 用于重叠词中间以及动补结构词语
+            { word: "对不起", answer: "bu" },
+            { word: "了不起", answer: "bu" },
+            { word: "受不了", answer: "bu" },
             { word: "苦不苦", answer: "bu" },
             { word: "热不热", answer: "bu" },
             { word: "甜不甜", answer: "bu" },
@@ -173,7 +173,9 @@
             { word: "行不行", answer: "bu" },
             { word: "多不多", answer: "bu" },
             { word: "累不累", answer: "bu" },
-            { word: "酸不酸", answer: "bu" }
+            { word: "酸不酸", answer: "bu" },
+            { word: "差不多", answer: "bu" },
+            { word: "拿不动", answer: "bu" }
         ];
 
         const pinyinOptions = ["bù", "bú", "bu"];
