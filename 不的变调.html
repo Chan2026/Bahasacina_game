@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>“不”的变调大挑战</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+        body {
+            font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(to bottom, #e0f2fe, #f0fdf4);
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* 气球容器，固定位置 */
+        .balloon-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .balloon {
+            position: relative;
+            width: 130px;
+            height: 160px;
+            border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            width: 2px;
+            height: 25px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .balloon:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        /* 爆炸效果 */
+        .pop-effect {
+            animation: pop-anim 0.4s ease-out forwards;
+        }
+
+        @keyframes pop-anim {
+            0% { transform: scale(1); opacity: 1; }
+            40% { transform: scale(1.3); opacity: 0.8; filter: brightness(1.5); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* 错误抖动 */
+        .shake {
+            animation: shake-anim 0.4s ease-in-out;
+        }
+
+        @keyframes shake-anim {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80px;
+            background: #4ade80;
+            border-radius: 50% 50% 0 0 / 15% 15% 0 0;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center p-4">
+
+    <!-- 顶部 UI -->
+    <div class="fixed top-6 left-0 w-full px-6 flex justify-between items-center z-20">
+        <div class="bg-white/80 backdrop-blur rounded-full px-6 py-2 shadow-lg border-2 border-pink-200">
+            <span class="text-2xl text-pink-500">得分: <span id="score">0</span></span>
+        </div>
+        <div class="bg-white/80 backdrop-blur rounded-full px-6 py-2 shadow-lg border-2 border-blue-200">
+            <span class="text-2xl text-blue-500">剩余: <span id="timer">45</span>s</span>
+        </div>
+    </div>
+
+    <!-- 游戏中心区域 -->
+    <div id="game-container" class="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+        <!-- 背景元素 -->
+        <div class="cloud w-32 h-12 top-20 left-10"></div>
+        <div class="cloud w-48 h-16 top-40 right-20"></div>
+        <div class="grass"></div>
+
+        <!-- 开始屏幕 -->
+        <div id="start-screen" class="bg-white/95 p-10 rounded-3xl shadow-2xl text-center z-30 border-4 border-yellow-300">
+            <h1 class="text-5xl mb-4 text-orange-500 font-bold">“不”的变调挑战赛</h1>
+            <p class="text-xl mb-8 text-gray-600">点击正确读音的气球，让它爆炸吧！</p>
+            <button onclick="startGame()" class="bg-orange-500 hover:bg-orange-600 text-white text-3xl px-12 py-4 rounded-full shadow-lg transition transform active:scale-95">
+                开始挑战
+            </button>
+        </div>
+
+        <!-- 题目区域 -->
+        <div id="word-display" class="hidden text-center z-10">
+            <h2 class="text-2xl text-blue-500 mb-6 font-semibold">请找出“不”在这个词里的读音：</h2>
+            <div id="current-word" class="text-8xl font-bold text-gray-800 tracking-wider bg-white/70 px-12 py-6 rounded-3xl shadow-sm inline-block border-4 border-white">
+                ---
+            </div>
+            
+            <!-- 气球排列区 -->
+            <div id="balloon-area" class="balloon-container">
+                <!-- 气球将通过JS生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 结算弹窗 -->
+    <div id="end-screen" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+        <div class="bg-white p-12 rounded-3xl text-center max-w-sm border-8 border-yellow-400 shadow-2xl">
+            <h2 class="text-4xl text-orange-500 mb-4 font-bold">挑战结束！</h2>
+            <p class="text-2xl mb-8">最终得分: <span id="final-score" class="font-bold text-pink-500">0</span></p>
+            <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white text-2xl px-12 py-3 rounded-full transition shadow-lg">
+                重新开始
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 词库配置
+        const wordList = [
+            // 四声 (bù) - 在一、二、三声前
+            { word: "不好", answer: "bù" },
+            { word: "不行", answer: "bù" },
+            { word: "不管", answer: "bù" },
+            { word: "不同", answer: "bù" },
+            { word: "不平", answer: "bù" },
+            { word: "不满", answer: "bù" },
+            { word: "对不起", answer: "bù" }, // 变调规律：在三声前读四声
+            { word: "了不起", answer: "bù" }, // 变调规律：在三声前读四声
+            { word: "受不了", answer: "bù" }, // 变调规律：在三声前读四声
+            // 二声 (bú) - 在四声（去声）前
+            { word: "不是", answer: "bú" },
+            { word: "不去", answer: "bú" },
+            { word: "不错", answer: "bú" },
+            { word: "不变", answer: "bú" },
+            { word: "不定", answer: "bú" },
+            { word: "不会", answer: "bú" },
+            { word: "不要", answer: "bú" },
+            { word: "不看", answer: "bú" },
+            // 轻声 (bu) - 仅用于重叠词
+            { word: "苦不苦", answer: "bu" },
+            { word: "热不热", answer: "bu" },
+            { word: "甜不甜", answer: "bu" },
+            { word: "好不好", answer: "bu" },
+            { word: "行不行", answer: "bu" },
+            { word: "多不多", answer: "bu" },
+            { word: "累不累", answer: "bu" },
+            { word: "酸不酸", answer: "bu" }
+        ];
+
+        const pinyinOptions = ["bù", "bú", "bu"];
+        const colors = ['#ff8787', '#f06595', '#cc5de8', '#845ef7', '#5c7cfa', '#339af0', '#20c997', '#51cf66', '#fcc419', '#ff922b'];
+
+        let score = 0;
+        let timeLeft = 45;
+        let gameActive = false;
+        let timerId = null;
+        let lastWord = ""; 
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('word-display').classList.remove('hidden');
+            gameActive = true;
+            nextQuestion();
+            
+            timerId = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (!gameActive) return;
+
+            const area = document.getElementById('balloon-area');
+            area.innerHTML = '';
+
+            let randomItem;
+            do {
+                randomItem = wordList[Math.floor(Math.random() * wordList.length)];
+            } while (randomItem.word === lastWord);
+            
+            lastWord = randomItem.word;
+            document.getElementById('current-word').textContent = randomItem.word;
+
+            pinyinOptions.forEach((opt, index) => {
+                createBalloon(opt, opt === randomItem.answer, index);
+            });
+        }
+
+        function createBalloon(text, isCorrect, index) {
+            const area = document.getElementById('balloon-area');
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            balloon.style.backgroundColor = color;
+            
+            const pinyin = document.createElement('span');
+            pinyin.textContent = text;
+            pinyin.className = 'text-4xl font-bold text-white drop-shadow-md select-none';
+            balloon.appendChild(pinyin);
+
+            balloon.onclick = () => {
+                if (!gameActive) return;
+
+                if (isCorrect) {
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    balloon.classList.add('pop-effect');
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 400);
+                } else {
+                    balloon.classList.add('shake');
+                    setTimeout(() => balloon.classList.remove('shake'), 400);
+                }
+            };
+
+            area.appendChild(balloon);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerId);
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').textContent = score;
+        }
+    </script>
+</body>
+</html>
