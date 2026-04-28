@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宽大为怀：4组联动接力挑战</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            --secondary-gradient: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #1f2937;
+            user-select: none;
+        }
+
+        #game-app {
+            width: 1000px;
+            height: 700px;
+            background: var(--glass);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部状态栏 */
+        .header {
+            background: var(--primary-gradient);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+        .timer { font-family: 'Courier New', monospace; font-size: 32px; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 10px; }
+
+        /* 游戏主区域 */
+        .main-stage {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .level-indicator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .level-badge {
+            padding: 12px;
+            border-radius: 15px;
+            background: #e5e7eb;
+            color: #9ca3af;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .level-badge.active { 
+            background: white; 
+            color: #1e3a8a; 
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .level-badge.completed { background: var(--success-color); color: white; }
+
+        /* 题目卡片 */
+        .task-card {
+            width: 100%;
+            max-width: 750px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .question-meta { color: #6b7280; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .question-text { font-size: 26px; margin-bottom: 35px; line-height: 1.5; color: #111827; font-weight: 500; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .option-btn {
+            padding: 20px;
+            border: 2px solid #f3f4f6;
+            border-radius: 15px;
+            background: #f9fafb;
+            color: #374151;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-btn:hover { border-color: #3b82f6; background: #eff6ff; color: #1e40af; }
+        .option-btn.correct { background: var(--success-color); color: white; border-color: var(--success-color); }
+        .option-btn.wrong { background: var(--error-color); color: white; border-color: var(--error-color); animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* 覆盖层 */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .btn-main {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 15px rgba(59, 130, 246, 0.3);
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-main:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .rule-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .rule-card h4 { margin: 0 0 5px 0; font-size: 16px; }
+        .rule-card p { margin: 0; font-size: 13px; color: #64748b; }
+
+        #toast {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 10px;
+            display: none;
+            z-index: 200;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="game-app">
+    <div id="toast">提示信息</div>
+
+    <div class="header">
+        <h1>《宽大为怀》全班 4 组接力赛</h1>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div class="main-stage">
+        <div class="level-indicator">
+            <div class="level-badge active" id="badge-0">1. 基础组 A</div>
+            <div class="level-badge" id="badge-1">2. 基础组 B</div>
+            <div class="level-badge" id="badge-2">3. 进阶组</div>
+            <div class="level-badge" id="badge-3">4. 高手组</div>
+        </div>
+
+        <div id="game-content" style="width: 100%; display: flex; justify-content: center;">
+            <!-- 题目动态载入 -->
+        </div>
+    </div>
+
+    <!-- 开始 -->
+    <div id="start-overlay" class="overlay">
+        <h2 style="font-size: 36px; color: #1e3a8a; margin-bottom: 10px;">全班协作挑战赛</h2>
+        <p style="font-size: 18px; color: #64748b;">4 个小组接力完成 12 道题目，考验默契与速度！</p>
+        
+        <div class="rules-grid">
+            <div class="rule-card" style="border-left: 5px solid #60a5fa;">
+                <h4>🟢 基础组 A</h4>
+                <p>字音辨析与部首<br>(1-3 题)</p>
+            </div>
+            <div class="rule-card" style="border-left: 5px solid #34d399;">
+                <h4>🟢 基础组 B</h4>
+                <p>字形校对与反义词<br>(4-6 题)</p>
+            </div>
+            <div class="rule-card" style="border-left: 5px solid #fbbf24;">
+                <h4>🟡 进阶组</h4>
+                <p>词义应用与关联词<br>(7-9 题)</p>
+            </div>
+            <div class="rule-card" style="border-left: 5px solid #f87171;">
+                <h4>🔴 高手组</h4>
+                <p>情感领悟与深究<br>(10-12 题)</p>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="startGame()">全组准备，开始！</button>
+    </div>
+
+    <!-- 结束 -->
+    <div id="end-overlay" class="overlay" style="display: none;">
+        <div style="font-size: 80px;">🏆</div>
+        <h2 style="font-size: 44px; color: var(--success-color); margin: 10px 0;">挑战达成！</h2>
+        <p style="font-size: 20px;">你们班级合作完成的时间是：</p>
+        <div id="final-time" style="font-size: 70px; font-weight: bold; margin: 15px 0; color: #1e3a8a;">00:00</div>
+        <p style="color: #64748b; max-width: 500px; margin-bottom: 30px;">
+            “严于律己，宽以待人”。你们不仅赢得了时间，更学会了知识与体谅！
+        </p>
+        <button class="btn-main" onclick="location.reload()">重新挑战</button>
+    </div>
+</div>
+
+<script>
+    const gameData = [
+        {
+            group: "基础组 A",
+            questions: [
+                { q: "请选出“轿车”的正确拼音：", a: ["jiāo chē", "jiào chē", "qiáo chē", "jiǎo chē"], correct: 1 },
+                { q: "“妨碍”的“碍”部首是：", a: ["石部", "得部", "彳部", "日部"], correct: 0 },
+                { q: "“愧疚”的“疚”字音是：", a: ["jiǔ", "jiū", "jiù", "qiú"], correct: 2 }
+            ]
+        },
+        {
+            group: "基础组 B",
+            questions: [
+                { q: "下列哪个词语的字形是完全正确的？", a: ["收筋缩骨", "收筋宿骨", "收斤缩骨", "收筋锁骨"], correct: 0 },
+                { q: "找出“窄”的反义词：", a: ["长", "深", "宽", "高"], correct: 2 },
+                { q: "“委____”陈叔叔向子晴妈妈致谢。", a: ["脱", "托", "驼", "拖"], correct: 1 }
+            ]
+        },
+        {
+            group: "进阶组",
+            questions: [
+                { q: "“雨下得很大，子晴____进不了门。”", a: ["虽然", "竟然", "果然", "几乎"], correct: 3 },
+                { q: "“暮色”是指什么时候的景色？", a: ["清晨", "中午", "黄昏/傍晚", "深夜"], correct: 2 },
+                { q: "“陈叔叔的车挡住了去路，子晴心里乱成一锅粥。”这是什么修辞？", a: ["比喻", "拟人", "夸张", "排比"], correct: 0 }
+            ]
+        },
+        {
+            group: "高手组",
+            questions: [
+                { q: "子晴知道陈奶奶受伤的真相后，为什么“脸颊一红”？", a: ["因为天气太闷热了", "因为妈妈在责备她", "因为她为先前的抱怨感到羞愧", "因为陈叔叔在夸奖她"], correct: 2 },
+                { q: "关于“宽大为怀”，哪项说明是正确的？", a: ["指身体非常宽大", "指不计较他人过失，体谅他人", "指把门开得很大", "指家里地方很宽阔"], correct: 1 },
+                { q: "课文最后提到“暮色也变得美丽”，是因为：", a: ["路灯亮起来了", "雨终于停了", "子晴学会了宽容，心情变好了", "陈叔叔把车移走了"], correct: 2 }
+            ]
+        }
+    ];
+
+    let curGroupIdx = 0;
+    let curQuestIdx = 0;
+    let startTime;
+    let timerInterval;
+
+    const timerEl = document.getElementById('timer');
+    const toastEl = document.getElementById('toast');
+    const contentEl = document.getElementById('game-content');
+
+    function showToast(text) {
+        toastEl.innerText = text;
+        toastEl.style.display = 'block';
+        setTimeout(() => toastEl.style.display = 'none', 1500);
+    }
+
+    function startGame() {
+        document.getElementById('start-overlay').style.display = 'none';
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+        renderQuestion();
+    }
+
+    function updateTimer() {
+        const diff = Date.now() - startTime;
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function renderQuestion() {
+        const groupData = gameData[curGroupIdx];
+        const qData = groupData.questions[curQuestIdx];
+
+        contentEl.innerHTML = `
+            <div class="task-card">
+                <div class="question-meta">${groupData.group} - 第 ${curQuestIdx + 1}/3 题</div>
+                <div class="question-text">${qData.q}</div>
+                <div class="options-grid">
+                    ${qData.a.map((opt, i) => `
+                        <button class="option-btn" onclick="checkAnswer(${i})">${opt}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function checkAnswer(idx) {
+        const qData = gameData[curGroupIdx].questions[curQuestIdx];
+        const btns = document.querySelectorAll('.option-btn');
+
+        if (idx === qData.correct) {
+            btns[idx].classList.add('correct');
+            showToast("正确！加油！");
+            
+            setTimeout(() => {
+                curQuestIdx++;
+                if (curQuestIdx >= 3) {
+                    completeGroup();
+                } else {
+                    renderQuestion();
+                }
+            }, 600);
+        } else {
+            btns[idx].classList.add('wrong');
+            showToast("再想一想哦！");
+            setTimeout(() => btns[idx].classList.remove('wrong'), 800);
+        }
+    }
+
+    function completeGroup() {
+        const oldBadge = document.getElementById(`badge-${curGroupIdx}`);
+        oldBadge.classList.remove('active');
+        oldBadge.classList.add('completed');
+
+        curGroupIdx++;
+        curQuestIdx = 0;
+
+        if (curGroupIdx >= 4) {
+            finishGame();
+        } else {
+            const newBadge = document.getElementById(`badge-${curGroupIdx}`);
+            newBadge.classList.add('active');
+            showToast(`本组完成！请 ${gameData[curGroupIdx].group} 接力！`);
+            renderQuestion();
+        }
+    }
+
+    function finishGame() {
+        clearInterval(timerInterval);
+        document.getElementById('end-overlay').style.display = 'flex';
+        document.getElementById('final-time').innerText = timerEl.innerText;
+    }
+</script>
+</body>
+</html>
