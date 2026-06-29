@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邻里勇敢大冒险 - 四年级道德互动游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .pulse-btn {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-800">
+
+    <!-- 顶部状态栏 -->
+    <header class="bg-white shadow-md border-b-4 border-green-400 p-4 sticky top-0 z-50">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-3xl">🏡</span>
+                <div>
+                    <h1 class="text-lg font-bold text-green-700">邻里勇敢大冒险</h1>
+                    <p class="text-xs text-gray-500">四年级道德：勇敢面对邻居</p>
+                </div>
+            </div>
+            <!-- 属性计数器 -->
+            <div class="flex space-x-3 text-sm font-bold bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                <span id="stat-courage" title="勇气">🦁 0</span>
+                <span id="stat-wisdom" title="智慧">💡 0</span>
+                <span id="stat-friendship" title="邻里关系">🤝 100</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 游戏主画布容器 -->
+    <main class="flex-grow max-w-xl w-full mx-auto px-4 py-6 flex flex-col justify-center">
+        <!-- 游戏外壳 -->
+        <div id="game-card" class="bg-white rounded-3xl shadow-xl border-4 border-emerald-500 overflow-hidden min-h-[500px] flex flex-col justify-between p-6 relative">
+            
+            <!-- 场景 0: 游戏开始界面 -->
+            <div id="screen-intro" class="flex flex-col items-center justify-center text-center space-y-6 py-4">
+                <div class="text-6xl animate-bounce">🦁📣🏡</div>
+                <h2 class="text-3xl font-black text-emerald-600 leading-tight">
+                    当邻居做错事时，<br><span class="text-amber-500">你敢不敢开口？</span>
+                </h2>
+                <p class="text-gray-600 text-sm md:text-base max-w-sm">
+                    欢迎来到社区！你将遇到3个真实的邻里冲突。面对不讲理的邻居，你需要发挥<b>“超凡的勇气”</b>与<b>“沟通的智慧”</b>，加油！
+                </p>
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-left text-xs space-y-2 max-w-xs text-amber-800">
+                    <p class="font-bold">💡 道德核心要点：</p>
+                    <p>• 勇气不是去和邻居吵架，而是有礼貌地指出不对。</p>
+                    <p>• 诚实表达感受，维护社区公德是勇敢的表现。</p>
+                </div>
+                <button onclick="startGame()" class="pulse-btn w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-lg border-b-4 border-emerald-700 transition duration-150 transform active:scale-95">
+                    开始冒险吧！
+                </button>
+            </div>
+
+            <!-- 游戏主剧情场景 (初始隐藏) -->
+            <div id="screen-gameplay" class="hidden flex-col justify-between flex-grow space-y-4">
+                <!-- 进度指示器 -->
+                <div class="w-full bg-gray-100 rounded-full h-3">
+                    <div id="progress-indicator" class="bg-emerald-500 h-3 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+
+                <!-- 场景图解展示区 (使用表情符号/SVG 创造生动的场景) -->
+                <div class="relative bg-gradient-to-b from-blue-100 to-green-100 rounded-2xl p-4 border-2 border-dashed border-emerald-300 flex flex-col items-center justify-center min-h-[160px]">
+                    <div id="scenario-scene-icons" class="text-7xl mb-2"></div>
+                    <div id="scenario-bubble" class="bg-white text-xs md:text-sm p-3 rounded-2xl shadow-md border border-gray-100 text-center max-w-xs relative">
+                        <span id="scenario-description">情境加载中...</span>
+                    </div>
+                </div>
+
+                <!-- 步骤 1: 剧情前哨站 -->
+                <div id="step-intro" class="space-y-4">
+                    <h3 class="font-bold text-lg text-emerald-800" id="step-intro-title">场景标题</h3>
+                    <p class="text-gray-600 text-sm" id="step-intro-text">情境介绍文本...</p>
+                    <button onclick="goToChargeScreen()" class="w-full bg-amber-400 hover:bg-amber-500 text-white font-bold py-3 px-6 rounded-xl text-lg shadow border-b-4 border-amber-600 transition">
+                        走上前，准备开口说！ 🦁
+                    </button>
+                </div>
+
+                <!-- 步骤 2: 勇气蓄力仪小游戏 -->
+                <div id="step-charge" class="hidden flex flex-col items-center justify-center space-y-4 py-2">
+                    <h3 class="font-bold text-base text-amber-700 text-center">🦁 勇气蓄力仪：看准时机，当指针走到绿色最满时点击“大声说”！</h3>
+                    <!-- 蓄力条外壳 -->
+                    <div class="w-full max-w-xs bg-gray-200 rounded-full h-8 overflow-hidden relative border-2 border-gray-400">
+                        <!-- 成功区域 (中心) -->
+                        <div class="absolute inset-y-0 left-1/3 right-1/3 bg-emerald-400 opacity-60"></div>
+                        <div class="absolute inset-y-0 left-2/5 right-2/5 bg-emerald-500 border-x-2 border-emerald-600"></div>
+                        <!-- 动态指针 -->
+                        <div id="charge-pointer" class="absolute top-0 bottom-0 w-2 bg-red-600 shadow-lg" style="left: 0%;"></div>
+                    </div>
+                    <div class="text-xs text-gray-500">提示：越靠近中间最亮绿色区，获得的“基础勇气值”越高！</div>
+                    <button onclick="stopCharge()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg border-b-4 border-red-700 transition">
+                        就是现在！勇敢开口！ 🗣️
+                    </button>
+                </div>
+
+                <!-- 步骤 3: 智慧选择决策点 -->
+                <div id="step-choices" class="hidden space-y-3">
+                    <h3 class="font-bold text-gray-700 text-sm">💡 你将决定用什么语气和邻居叔叔/阿姨沟通：</h3>
+                    <div id="choices-container" class="space-y-2">
+                        <!-- 动态渲染选项 -->
+                    </div>
+                </div>
+
+                <!-- 步骤 4: 句子拼拼乐（如果是特定场景或特定选择触发） -->
+                <div id="step-puzzle" class="hidden space-y-4">
+                    <h3 class="font-bold text-sm text-blue-800">🧩 句子拼拼乐：请拼出一句最得体、有勇气的礼貌用语！ (点击字块)</h3>
+                    <!-- 答案展示区 -->
+                    <div id="puzzle-answer" class="min-h-[50px] p-3 border-2 border-dashed border-blue-400 rounded-xl bg-blue-50 flex flex-wrap gap-2 items-center justify-center text-sm font-bold text-blue-900">
+                        <!-- 拼好的词 -->
+                    </div>
+                    <!-- 备选词库 -->
+                    <div id="puzzle-options" class="flex flex-wrap gap-2 justify-center">
+                        <!-- 可选字块 -->
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="resetPuzzle()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-xl text-sm">
+                            重置
+                        </button>
+                        <button onclick="submitPuzzle()" class="w-2/3 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-xl text-sm shadow">
+                            确定递交 📝
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤 5: 结果展示 -->
+                <div id="step-result" class="hidden space-y-4">
+                    <div class="p-4 rounded-2xl border-2" id="result-box">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-2xl" id="result-emoji">🔔</span>
+                            <h4 class="font-bold text-lg" id="result-title">反馈标题</h4>
+                        </div>
+                        <p class="text-sm" id="result-text">详细反馈内容...</p>
+                    </div>
+                    <!-- 属性变化提示 -->
+                    <div class="flex justify-around bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs font-bold">
+                        <span id="diff-courage" class="text-amber-600">勇气: +0</span>
+                        <span id="diff-wisdom" class="text-emerald-600">智慧: +0</span>
+                        <span id="diff-friendship" class="text-blue-600">邻里关系: +0</span>
+                    </div>
+                    <button onclick="nextScenario()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl text-lg shadow transition">
+                        继续前进 ➔
+                    </button>
+                </div>
+            </div>
+
+            <!-- 场景 3: 游戏结束及证书生成 -->
+            <div id="screen-end" class="hidden flex-col items-center justify-center space-y-6 text-center">
+                <div class="text-6xl">🏆🎖️</div>
+                <h2 class="text-2xl font-black text-emerald-600">恭喜！你完成了所有邻里挑战！</h2>
+                <p class="text-sm text-gray-600 max-w-sm">
+                    通过面对真实的邻里纠结，你学会了<b>“勇敢有度，表达有礼”</b>。你不再是一个选择逃避或用争吵解决问题的冲动孩子了！
+                </p>
+
+                <!-- 荣誉证书卡片 -->
+                <div class="w-full bg-amber-50 rounded-2xl p-5 border-4 border-amber-300 shadow-inner relative flex flex-col space-y-3">
+                    <div class="absolute top-2 right-2 text-3xl opacity-30">👑</div>
+                    <span class="text-xs uppercase tracking-widest text-amber-800 font-black">四 年 级 德 育 荣 誉 证 书</span>
+                    <h3 class="text-xl font-bold text-amber-900">社区“智勇双全”小卫士</h3>
+                    
+                    <!-- 互动名字输入 -->
+                    <div id="cert-name-input-group" class="flex flex-col space-y-2 items-center">
+                        <label for="student-name" class="text-xs text-amber-700">请输入你的名字以载入证书：</label>
+                        <div class="flex space-x-2 w-full max-w-xs">
+                            <input type="text" id="student-name" placeholder="例如：李小明" class="px-3 py-1.5 rounded-lg border border-amber-300 text-center text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 flex-grow">
+                            <button onclick="generateCertificate()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow">确认</button>
+                        </div>
+                    </div>
+
+                    <!-- 证书打印区 -->
+                    <div id="cert-printable" class="hidden flex-col space-y-3">
+                        <p class="text-lg font-bold text-green-800 underline decoration-double" id="cert-display-name"></p>
+                        <p class="text-xs text-amber-800 max-w-xs mx-auto leading-relaxed">
+                            在面临不文明邻里行为时，不妥协、不逃避，勇敢发声，兼具沟通智慧，堪称四年级道德榜样！
+                        </p>
+                        <!-- 最终成就 -->
+                        <div class="flex justify-center space-x-4 bg-white/70 py-2 rounded-xl border border-amber-200 text-xs font-bold">
+                            <span id="final-courage">🦁 勇气: 0</span>
+                            <span id="final-wisdom">💡 智慧: 0</span>
+                            <span id="final-friendship">🤝 关系: 0</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400">证书于 2026 道德课堂颁发 • 永远记住：诚实与勇敢同行</p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 w-full">
+                    <button onclick="restartGame()" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl text-sm transition">
+                        重新挑战 🔄
+                    </button>
+                    <button onclick="window.print()" class="w-1/2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow transition">
+                        列印本页 🖨️
+                    </button>
+                </div>
+            </div>
+
+            <!-- 内置消息提示栏（代替 Alert） -->
+            <div id="toast-message" class="absolute bottom-4 left-4 right-4 bg-gray-800 text-white text-center py-2 px-4 rounded-xl text-xs font-semibold opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+                提示信息
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 底部教学引导 -->
+    <footer class="bg-emerald-800 text-emerald-100 text-center py-4 text-xs font-medium">
+        <div class="max-w-xl mx-auto px-4">
+            <p>© 2026 四年级道德课程：单元九《勇敢面对邻里》交互课件</p>
+            <p class="text-emerald-300 mt-1">“勇敢承认是诚实，勇敢开口是担当”</p>
+        </div>
+    </footer>
+
+    <script>
+        /* 游戏数据与状态 */
+        const scenarios = [
+            {
+                id: 1,
+                title: "巨无霸轿车堵大门 🚗💨",
+                sceneIcons: "🏡🚧🚗",
+                description: "隔壁陈叔叔图方便，把他的大轿车直接停在你们家车库门前。爸爸一会儿要急着开车去上班，这让全家好头疼！",
+                introText: "你站在门口，看到陈叔叔正在院子里给花浇水。直接装作看不见？还是走上前勇敢跟陈叔叔说清楚？",
+                choices: [
+                    {
+                        text: "【大吵一架】“喂！陈叔叔，你懂不懂规矩啊？车子乱停，我爸要出不去了！快移车！” 😤",
+                        effect: { courage: 25, wisdom: -10, friendship: -40 },
+                        success: false,
+                        title: "陈叔叔生气了！",
+                        feedback: "陈叔叔脸上有些挂不住，哼了一声说：‘小孩子大呼小叫什么！没大没小！’虽然他移了车，但两家关系变得很恶劣。"
+                    },
+                    {
+                        text: "【选择退缩】“算了吧……他是长辈，我去说他，他骂我怎么办？等爸爸出来自己解决。” 🤫",
+                        effect: { courage: -20, wisdom: 10, friendship: 0 },
+                        success: false,
+                        title: "你默默地走开了",
+                        feedback: "你失去了练习勇敢面对的机会。爸爸出来后因为移车和找邻居协商耽误了时间，上班迟到了。"
+                    },
+                    {
+                        text: "【智勇说服】有礼貌地上前，礼貌却坚定地说明家里的不便。 🌟",
+                        effect: { courage: 30, wisdom: 30, friendship: 20 },
+                        success: true,
+                        usePuzzle: true, // 触发拼句小游戏
+                        title: "陈叔叔连声道歉！",
+                        feedback: "陈叔叔一听拍了拍脑袋，赶紧说：‘哎呀真对不起！叔叔只图方便停了一下，我马上开走，祝你爸爸上班顺利！’ 你的勇敢大获全胜！"
+                    }
+                ],
+                puzzle: {
+                    words: ["陈叔叔您好，", "我爸爸等一下", "要开车出门上班。", "请问您可以", "帮忙把车", "移一下吗？", "谢谢您！"],
+                    correctOrder: ["陈叔叔您好，", "我爸爸等一下", "要开车出门上班。", "请问您可以", "帮忙把车", "移一下吗？", "谢谢您！"]
+                }
+            },
+            {
+                id: 2,
+                title: "乱飞的落叶与垃圾 🧹🍂",
+                sceneIcons: "🏡💨🧹🚮",
+                description: "李阿姨在打扫她们家落叶和纸屑，为了贪图省力，居然用扫帚直接把落叶一股脑儿往你们家围栏里扫，导致排水沟有些堵了。",
+                introText: "李阿姨是个平时有点凶的人。你看着她不断把垃圾扫过来，这时候该怎么做呢？",
+                choices: [
+                    {
+                        text: "【隐忍不发】“李阿姨可能不是故意的，等她走了我自己清理就好了，不要得罪她。” 🤐",
+                        effect: { courage: -25, wisdom: 5, friendship: 10 },
+                        success: false,
+                        title: "垃圾堆积起来了",
+                        feedback: "你默默地清理了垃圾。可是由于你没有发声，李阿姨以后天天都往你家院子扫垃圾。过度隐忍只会让错误行为继续发生。"
+                    },
+                    {
+                        text: "【智勇协商】“李阿姨您好！这里风很大，垃圾会堵住水沟。我们一起把它们装进垃圾袋里好吗？” 😊",
+                        effect: { courage: 35, wisdom: 35, friendship: 15 },
+                        success: true,
+                        title: "李阿姨感到有些不好意思",
+                        feedback: "李阿姨愣了一下，意识到自己的自私行为被一个孩子温柔地指出来了。她脸一红，讪笑着说：‘哎呀，真不好意思，阿姨没注意，我来装袋子吧。’ 赞！"
+                    },
+                    {
+                        text: "【针锋相对】“李阿姨！垃圾不要扫过来！你这样太没公德心了！我要告诉我妈妈！” 😡",
+                        effect: { courage: 20, wisdom: -15, friendship: -30 },
+                        success: false,
+                        title: "两家发生争执",
+                        feedback: "李阿姨反咬一口说你没礼貌、诬赖她。结果变成两家大人的争吵。勇气用错了方式，就变成了冲突的火苗。"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "深夜卡拉OK狂欢派对 🎤🌃",
+                sceneIcons: "🏡🔊🎤⚡",
+                description: "已经晚上10点半了，后屋的林叔叔家还在大声唱卡拉OK，震耳欲聋的低音炮让你完全睡不着，明天早上你可要进行重要的听写测试！",
+                introText: "大晚上的直接去敲林叔叔家门可能不太安全，但一直忍着又无法休息。你要怎么勇敢理智地处理呢？",
+                choices: [
+                    {
+                        text: "【深夜勇士】在爸爸妈妈陪同下，一起走到林叔叔家大门前，敲门礼貌沟通。 👨‍👩‍👦",
+                        effect: { courage: 40, wisdom: 30, friendship: 10 },
+                        success: true,
+                        title: "声音减小了，测试很顺利！",
+                        feedback: "林叔叔看到你们全家到访，立刻把音乐关了，抱歉地解释不知道已经这么晚了。在父母陪同下发声，既勇敢又安全！"
+                    },
+                    {
+                        text: "【无用宣泄】生闷气，拿石头往林叔叔院子里丢，以此发泄不满。 ☄️",
+                        effect: { courage: -10, wisdom: -30, friendship: -50 },
+                        success: false,
+                        title: "产生了危险行为",
+                        feedback: "丢石头是很危险的行为，这不仅没有解决噪音问题，一旦被发现还会被邻居投诉。这完全不是勇敢，而是犯错。"
+                    },
+                    {
+                        text: "【塞住耳朵】用枕头盖住头，委屈地哭，不敢去说，也不和爸妈说。 😭",
+                        effect: { courage: -30, wisdom: 0, friendship: 10 },
+                        success: false,
+                        title: "第二天的测试不及格",
+                        feedback: "你因为没睡好，第二天听写测试打瞌睡。遇到困难不敢寻找解决途径，最终受伤害的还是自己。"
+                    }
+                ]
+            }
+        ];
+
+        let currentScenarioIndex = 0;
+        let courageScore = 0;
+        let wisdomScore = 0;
+        let friendshipScore = 100;
+
+        let chargeInterval;
+        let pointerPosition = 0;
+        let pointerDirection = 1; // 1 = right, -1 = left
+        let finalChargeBonus = 0;
+
+        let selectedPuzzleWords = [];
+
+        /* 启动游戏 */
+        function startGame() {
+            document.getElementById('screen-intro').classList.add('hidden');
+            document.getElementById('screen-gameplay').classList.remove('hidden');
+            document.getElementById('screen-gameplay').classList.add('flex');
+            currentScenarioIndex = 0;
+            courageScore = 0;
+            wisdomScore = 0;
+            friendshipScore = 100;
+            updateStats();
+            loadScenario();
+        }
+
+        /* 加载情境 */
+        function loadScenario() {
+            const scenario = scenarios[currentScenarioIndex];
+            
+            // 进度条
+            const progressPct = ((currentScenarioIndex) / scenarios.length) * 100;
+            document.getElementById('progress-indicator').style.width = `${progressPct}%`;
+
+            // 插图与文字
+            document.getElementById('scenario-scene-icons').innerHTML = scenario.sceneIcons;
+            document.getElementById('scenario-description').innerText = scenario.description;
+            document.getElementById('step-intro-title').innerText = `情境 ${currentScenarioIndex + 1}: ${scenario.title}`;
+            document.getElementById('step-intro-text').innerText = scenario.introText;
+
+            // 切换步骤可见性
+            document.getElementById('step-intro').classList.remove('hidden');
+            document.getElementById('step-charge').classList.add('hidden');
+            document.getElementById('step-choices').classList.add('hidden');
+            document.getElementById('step-puzzle').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+        }
+
+        /* 引导去蓄力仪界面 */
+        function goToChargeScreen() {
+            document.getElementById('step-intro').classList.add('hidden');
+            document.getElementById('step-charge').classList.remove('hidden');
+            startChargeGame();
+        }
+
+        /* 启动蓄力游戏 */
+        function startChargeGame() {
+            pointerPosition = 0;
+            pointerDirection = 1;
+            const pointer = document.getElementById('charge-pointer');
+            
+            chargeInterval = setInterval(() => {
+                pointerPosition += pointerDirection * 5;
+                if (pointerPosition >= 100) {
+                    pointerPosition = 100;
+                    pointerDirection = -1;
+                } else if (pointerPosition <= 0) {
+                    pointerPosition = 0;
+                    pointerDirection = 1;
+                }
+                pointer.style.left = `${pointerPosition}%`;
+            }, 50);
+        }
+
+        /* 停止蓄力，计算勇气基础值 */
+        function stopCharge() {
+            clearInterval(chargeInterval);
+            
+            // 判定距离中心 (33.3% - 66.6%) 的紧密度
+            // 最完美区域是在50%
+            const distFromCenter = Math.abs(50 - pointerPosition);
+            
+            if (distFromCenter <= 10) {
+                finalChargeBonus = 20;
+                showToast("🦁 完美蓄力！勇气倍增！基础勇气 +20");
+            } else if (distFromCenter <= 25) {
+                finalChargeBonus = 10;
+                showToast("🦁 蓄力不错！基础勇气 +10");
+            } else {
+                finalChargeBonus = 2;
+                showToast("🦁 哎呀，开口慢了或太心急，基础勇气 +2");
+            }
+
+            document.getElementById('step-charge').classList.add('hidden');
+            renderChoices();
+        }
+
+        /* 渲染选项界面 */
+        function renderChoices() {
+            const scenario = scenarios[currentScenarioIndex];
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+
+            scenario.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-gray-50 hover:bg-emerald-50 border-2 border-gray-200 hover:border-emerald-400 p-4 rounded-xl text-sm md:text-base font-medium transition duration-150 transform active:scale-[0.99] flex flex-col space-y-1";
+                btn.onclick = () => selectChoice(index);
+                btn.innerHTML = choice.text;
+                container.appendChild(btn);
+            });
+
+            document.getElementById('step-choices').classList.remove('hidden');
+        }
+
+        /* 玩家点击选项决策 */
+        function selectChoice(index) {
+            const scenario = scenarios[currentScenarioIndex];
+            const choice = scenario.choices[index];
+
+            // 判断该选项是否需要开启拼句小游戏 (通常是成功/最佳选项)
+            if (choice.usePuzzle) {
+                document.getElementById('step-choices').classList.add('hidden');
+                initPuzzle(scenario, choice);
+            } else {
+                applyChoiceResult(choice);
+            }
+        }
+
+        /* 初始化拼句子游戏 */
+        function initPuzzle(scenario, choice) {
+            selectedPuzzleWords = [];
+            const puzzleContainer = document.getElementById('puzzle-options');
+            const answerContainer = document.getElementById('puzzle-answer');
+            
+            puzzleContainer.innerHTML = '';
+            answerContainer.innerHTML = '点击下方字块组装得体的沟通台词...';
+
+            // 乱序生成
+            const shuffledWords = [...scenario.puzzle.words].sort(() => Math.random() - 0.5);
+
+            shuffledWords.forEach(word => {
+                const wordBtn = document.createElement('button');
+                wordBtn.className = "bg-white hover:bg-blue-100 border border-blue-300 text-blue-800 text-xs md:text-sm font-semibold px-3 py-2 rounded-xl shadow-sm transition active:scale-95";
+                wordBtn.innerText = word;
+                wordBtn.onclick = () => {
+                    // 添加到解答区
+                    if (!selectedPuzzleWords.includes(word)) {
+                        selectedPuzzleWords.push(word);
+                        wordBtn.classList.add('opacity-40', 'pointer-events-none');
+                        updatePuzzleAnswerDisplay(scenario, choice);
+                    }
+                };
+                puzzleContainer.appendChild(wordBtn);
+            });
+
+            document.getElementById('step-puzzle').classList.remove('hidden');
+        }
+
+        /* 实时渲染拼好的答案 */
+        function updatePuzzleAnswerDisplay(scenario, choice) {
+            const answerContainer = document.getElementById('puzzle-answer');
+            if (selectedPuzzleWords.length === 0) {
+                answerContainer.innerHTML = '点击下方字块组装得体的沟通台词...';
+                return;
+            }
+            answerContainer.innerHTML = '';
+            selectedPuzzleWords.forEach((word, index) => {
+                const span = document.createElement('span');
+                span.className = "bg-blue-500 text-white px-2 py-1 rounded-lg text-xs md:text-sm font-bold flex items-center space-x-1";
+                span.innerText = word;
+                answerContainer.appendChild(span);
+            });
+        }
+
+        /* 重置拼句 */
+        function resetPuzzle() {
+            const scenario = scenarios[currentScenarioIndex];
+            const choice = scenario.choices.find(c => c.usePuzzle);
+            initPuzzle(scenario, choice);
+        }
+
+        /* 递交拼好的句子进行判断 */
+        function submitPuzzle() {
+            const scenario = scenarios[currentScenarioIndex];
+            const choice = scenario.choices.find(c => c.usePuzzle);
+
+            // 验证顺序
+            let isCorrect = true;
+            if (selectedPuzzleWords.length !== scenario.puzzle.correctOrder.length) {
+                isCorrect = false;
+            } else {
+                for (let i = 0; i < selectedPuzzleWords.length; i++) {
+                    if (selectedPuzzleWords[i] !== scenario.puzzle.correctOrder[i]) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                showToast("🧩 完美连线！智慧 +15 奖励！");
+                choice.effect.wisdom += 15; // 拼对句子的智慧奖励
+                document.getElementById('step-puzzle').classList.add('hidden');
+                applyChoiceResult(choice);
+            } else {
+                document.getElementById('game-card').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('game-card').classList.remove('shake');
+                }, 500);
+                showToast("❌ 语序不顺或礼貌用语不完整，请重新排一排哦！");
+            }
+        }
+
+        /* 应用选择结果反馈 */
+        function applyChoiceResult(choice) {
+            // 计算最终勇气 (加入蓄力仪的值)
+            let actualCourageDiff = choice.effect.courage;
+            if (actualCourageDiff > 0) {
+                actualCourageDiff += finalChargeBonus;
+            }
+
+            courageScore += actualCourageDiff;
+            wisdomScore += choice.effect.wisdom;
+            friendshipScore += choice.effect.friendship;
+
+            // 保证分数限制
+            courageScore = Math.max(0, courageScore);
+            wisdomScore = Math.max(0, wisdomScore);
+            friendshipScore = Math.max(0, Math.min(100, friendshipScore));
+
+            updateStats();
+
+            // 渲染反馈画面
+            document.getElementById('step-choices').classList.add('hidden');
+            const resultBox = document.getElementById('result-box');
+            const resultEmoji = document.getElementById('result-emoji');
+            
+            if (choice.success) {
+                resultBox.className = "p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-300 text-emerald-900";
+                resultEmoji.innerText = "🌟";
+            } else {
+                resultBox.className = "p-4 rounded-2xl border-2 bg-rose-50 border-rose-200 text-rose-900";
+                resultEmoji.innerText = "⚠️";
+            }
+
+            document.getElementById('result-title').innerText = choice.title;
+            document.getElementById('result-text').innerText = choice.feedback;
+
+            // 属性变动显示
+            document.getElementById('diff-courage').innerText = `勇气: ${actualCourageDiff >= 0 ? '+' : ''}${actualCourageDiff}`;
+            document.getElementById('diff-wisdom').innerText = `智慧: ${choice.effect.wisdom >= 0 ? '+' : ''}${choice.effect.wisdom}`;
+            document.getElementById('diff-friendship').innerText = `邻里关系: ${choice.effect.friendship >= 0 ? '+' : ''}${choice.effect.friendship}`;
+
+            document.getElementById('step-result').classList.remove('hidden');
+        }
+
+        /* 属性同步到主面板 */
+        function updateStats() {
+            document.getElementById('stat-courage').innerText = `🦁 ${courageScore}`;
+            document.getElementById('stat-wisdom').innerText = `💡 ${wisdomScore}`;
+            document.getElementById('stat-friendship').innerText = `🤝 ${friendshipScore}`;
+        }
+
+        /* 切换至下一个情境 */
+        function nextScenario() {
+            currentScenarioIndex++;
+            if (currentScenarioIndex < scenarios.length) {
+                loadScenario();
+            } else {
+                endGame();
+            }
+        }
+
+        /* 游戏结束，生成最终界面 */
+        function endGame() {
+            // 进度条满
+            document.getElementById('progress-indicator').style.width = `100%`;
+
+            document.getElementById('screen-gameplay').classList.remove('flex');
+            document.getElementById('screen-gameplay').classList.add('hidden');
+            document.getElementById('screen-end').classList.remove('hidden');
+            document.getElementById('screen-end').classList.add('flex');
+
+            // 隐藏名字输出打印区，等待输入
+            document.getElementById('cert-name-input-group').classList.remove('hidden');
+            document.getElementById('cert-printable').classList.add('hidden');
+        }
+
+        /* 生成专属证书 */
+        function generateCertificate() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            if (nameInput === "") {
+                showToast("请输入名字以生成证书！");
+                return;
+            }
+
+            document.getElementById('cert-display-name').innerText = nameInput;
+            document.getElementById('final-courage').innerText = `🦁 最终勇气: ${courageScore}`;
+            document.getElementById('final-wisdom').innerText = `💡 最终智慧: ${wisdomScore}`;
+            document.getElementById('final-friendship').innerText = `🤝 邻里友好: ${friendshipScore}%`;
+
+            // 转换可见性
+            document.getElementById('cert-name-input-group').classList.add('hidden');
+            document.getElementById('cert-printable').classList.remove('hidden');
+            document.getElementById('cert-printable').classList.add('flex');
+            showToast("🎓 证书已成功为您载入！可以点击列印永久保存！");
+        }
+
+        /* 重新开始游戏 */
+        function restartGame() {
+            document.getElementById('screen-end').classList.remove('flex');
+            document.getElementById('screen-end').classList.add('hidden');
+            startGame();
+        }
+
+        /* 显示底部浮窗提示 (替代 Alert) */
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        // 绑定 onload 页面加载事件
+        window.onload = function() {
+            // 初始化界面
+        };
+    </script>
+</body>
+</html>
