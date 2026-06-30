@@ -126,13 +126,12 @@
         }
 
         .card-icon { font-size: 3.5rem; margin-bottom: 10px; }
-        .card-title { color: var(--forest-green); font-size: 1.2rem; font-weight: bold; }
+        .card-title { color: var(--forest-green); font-size: 1.2rem; font-weight: bold; text-align: center; padding: 0 10px; }
 
     </style>
 </head>
 <body>
 
-    <!-- 装饰元素 -->
     <div class="decoration tree" style="left: 5%;">🌳</div>
     <div class="decoration tree" style="right: 5%;">🌲</div>
     <div class="decoration flower" style="left: 15%; animation-delay: 0s;">🌸</div>
@@ -147,8 +146,7 @@
     </header>
 
     <main id="gameContainer" class="game-grid">
-        <!-- 游戏卡片将由 JavaScript 渲染 -->
-    </main>
+        </main>
 
     <div class="forest-bg"></div>
 
@@ -162,13 +160,13 @@
             { 
                 title: "分号游戏", 
                 icon: "🐉", 
-                link: "04分号游戏.html", // 这是一个示例链接，测试点击
+                link: "04分号游戏.html", 
                 color: "#FFDDE2" 
             },
             { 
                 title: "汉语拼音", 
                 icon: "🧩", 
-                link: "https://chan2026.github.io/game_pinyin/", // 请在这里替换成你的游戏网址
+                link: "https://chan2026.github.io/game_pinyin/", 
                 color: "#E2F0CB" 
             },
             { 
@@ -201,12 +199,14 @@
                 link: "group.html", 
                 color: "#D1FAFF"   
             },
-             {  
+            {  
                 title: "道德-勇敢", 
                 icon: "🚩", 
                 link: "勇敢.html", 
                 color: "#D1FAFF"   
-            },
+            }
+        ]; // <--- 这里之前漏掉了闭合括号
+
         // 总共显示的格子数量（已有的游戏 + 空位）
         const totalSlots = 12;
 
@@ -219,7 +219,7 @@
             games.forEach(game => {
                 const card = document.createElement('a');
                 card.href = game.link;
-                // 如果是外部链接，可以加上 target="_blank" 在新标签页打开
+                
                 if (game.link !== "#") {
                     card.target = "_self"; 
                 }
@@ -247,7 +247,3 @@
     </script>
 </body>
 </html>
-
-
-
-
