@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诚实邻里大冒险 - 4年级道德单元十</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for beautiful icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nunito', 'ZCOOL KuaiLe', sans-serif;
+            background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 100%);
+            min-height: 100vh;
+        }
+        .comic-border {
+            border: 4px solid #1e293b;
+        }
+        .comic-shadow {
+            box-shadow: 4px 4px 0px #1e293b;
+        }
+        .comic-shadow-lg {
+            box-shadow: 8px 8px 0px #1e293b;
+        }
+        .comic-btn-active:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #1e293b;
+        }
+        /* Grid styling for the board */
+        .board-tile {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .board-tile:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .player-token {
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 text-slate-800 overflow-x-hidden">
+
+
+    <!-- BACKGROUND GRAPHICS -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 z-0">
+        <i class="fa-solid fa-house-chimney text-8xl absolute top-10 left-10 text-sky-400"></i>
+        <i class="fa-solid fa-tree text-9xl absolute bottom-10 left-20 text-emerald-400"></i>
+        <i class="fa-solid fa-seedling text-7xl absolute top-1/3 right-12 text-green-400"></i>
+        <i class="fa-solid fa-cloud text-9xl absolute top-12 right-1/4 text-white"></i>
+        <i class="fa-solid fa-heart text-7xl absolute bottom-12 right-20 text-rose-400"></i>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-7xl mx-auto relative z-10 flex flex-col min-h-[92vh]">
+        
+        <!-- HEADER -->
+        <header class="text-center mb-6">
+            <div class="inline-block bg-white p-4 rounded-3xl comic-border comic-shadow relative mb-2">
+                <span class="absolute -top-4 -left-4 bg-yellow-400 text-xs font-bold px-3 py-1 rounded-full comic-border uppercase tracking-widest text-slate-900">KSSR Semakan</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-indigo-600 tracking-wide flex items-center justify-center gap-3">
+                    🏡 诚实邻里大冒险!
+                </h1>
+                <p class="text-xs md:text-sm font-bold text-slate-500 mt-1 uppercase tracking-wider">四年级道德教育：第十单元 - 诚实对待邻居</p>
+            </div>
+        </header>
+
+
+        <!-- SCREEN 1: SETUP SCREEN -->
+        <div id="setupScreen" class="bg-white rounded-3xl comic-border comic-shadow-lg p-6 md:p-8 max-w-2xl mx-auto w-full flex-grow flex flex-col justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-center text-slate-800 mb-6 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-users-viewfinder text-indigo-500"></i> 玩家大集结 (1 - 6名玩家)
+                </h2>
+                <div class="bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl p-4 mb-6 text-sm text-amber-800">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-circle-info"></i> 游戏玩法简介：</p>
+                    大家轮流掷骰子。落在格子上会触发不一样的<b>“诚实关卡”</b>。答对继续留着，答错会退一步！谁最先到达终点（第15格）就获得“社区诚实之星”！
+                </div>
+
+                <!-- Player Count Select -->
+                <div class="mb-6 flex items-center justify-between bg-slate-50 p-4 rounded-2xl comic-border">
+                    <label class="font-extrabold text-slate-700">选择游戏人数:</label>
+                    <div class="flex gap-2">
+                        <button onclick="setPlayerCount(2)" id="btnCount2" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-xl border-2 border-indigo-300 transition-all">2人</button>
+                        <button onclick="setPlayerCount(3)" id="btnCount3" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-xl border-2 border-indigo-300 transition-all">3人</button>
+                        <button onclick="setPlayerCount(4)" id="btnCount4" class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-xl border-2 border-indigo-300 transition-all">4人</button>
+                        <button onclick="setPlayerCount(6)" id="btnCount6" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl border-2 border-slate-900 comic-shadow transition-all">6人</button>
+                    </div>
+                </div>
+
+
+                <!-- Players Form -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="playerInputsContainer">
+                    <!-- Dynamic inputs will be inserted here -->
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="startGame()" class="w-full md:w-2/3 px-8 py-4 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-extrabold text-2xl rounded-2xl comic-border comic-shadow comic-btn-active transition-all">
+                    🚀 开启诚实冒险！ START GAME
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: GAMEPLAY SCREEN -->
+        <div id="gameScreen" class="hidden flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- LEFT PANEL (GRID 12): MAP & BOARD (lg:col-span-8) -->
+            <div class="lg:col-span-8 bg-white/90 backdrop-blur-sm rounded-3xl comic-border comic-shadow p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-extrabold text-indigo-600"><i class="fa-solid fa-map-location-dot"></i> 幸福社区冒险地图</span>
+                        <button onclick="resetToSetup()" class="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-600 font-bold rounded-xl border border-rose-300 text-xs transition-all">
+                            重新开始
+                        </button>
+                    </div>
+                    
+                    <!-- THE MAP BOARD -->
+                    <div id="gameBoardGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-3 p-2 bg-slate-50 rounded-2xl border-2 border-slate-300 min-h-[360px]">
+                        <!-- 15 dynamic tiles will be generated here -->
+                    </div>
+                </div>
+
+                <!-- PLAYER STATUS BAR (BOTTOM OF MAP) -->
+                <div class="mt-4 border-t-2 border-dashed border-slate-200 pt-4">
+                    <h4 class="font-bold text-slate-500 mb-2 text-sm"><i class="fa-solid fa-chart-line"></i> 实时进度：</h4>
+                    <div id="playerProgressCards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                        <!-- Dynamic Player Scorecards here -->
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- RIGHT PANEL (GRID 4): ACTIONS & CONTROLS (lg:col-span-4) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- ACTIVE PLAYER PANEL -->
+                <div id="activePlayerCard" class="bg-indigo-50 border-4 border-slate-900 rounded-3xl comic-shadow p-6 text-center relative overflow-hidden flex-grow flex flex-col justify-between">
+                    <div class="absolute top-0 right-0 bg-yellow-300 text-slate-900 font-extrabold text-xs px-3 py-1 rounded-bl-xl border-l-2 border-b-2 border-slate-900">
+                        当前回合 Turn
+                    </div>
+                    
+                    <div>
+                        <!-- Avatar & Name -->
+                        <div id="activeAvatar" class="w-24 h-24 mx-auto rounded-2xl bg-white border-4 border-slate-900 flex items-center justify-center text-5xl mb-4 floating shadow-inner">
+                            🦁
+                        </div>
+                        <h3 id="activeName" class="text-2xl font-black text-slate-900">小明</h3>
+                        <p class="text-sm text-indigo-600 font-bold mt-1">目前停在第 <span id="activeTileNum" class="text-lg">0</span> 格</p>
+                    </div>
+
+                    <!-- Dice Section -->
+                    <div class="my-6">
+                        <div id="diceWrapper" class="relative inline-block">
+                            <!-- Custom CSS Cube Dice or Simple Styled Box -->
+                            <div id="diceBox" class="w-20 h-20 mx-auto bg-white border-4 border-slate-900 rounded-2xl comic-shadow flex items-center justify-center text-4xl font-black text-indigo-600 transition-all duration-300 cursor-pointer hover:rotate-6">
+                                🎲
+                            </div>
+                        </div>
+                        <p id="diceTip" class="text-xs text-slate-500 font-bold mt-2">点击骰子或下方按钮前进！</p>
+                    </div>
+
+                    <div>
+                        <button id="btnRoll" onclick="rollDice()" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-xl rounded-2xl comic-border comic-shadow comic-btn-active transition-all">
+                            🎲 投掷骰子 (1 - 3步)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+
+    <!-- CHALLENGE MODALS (HIDDEN BY DEFAULT) -->
+    
+    <!-- 1. MULTIPLE CHOICE MODAL -->
+    <div id="modalTrivia" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl comic-border comic-shadow-lg max-w-lg w-full p-6 relative animate-bounce-in">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">💡</span>
+                <div>
+                    <h3 class="text-2xl font-extrabold text-amber-500">道德情境答题</h3>
+                    <p class="text-xs text-slate-400 font-semibold uppercase">Jawab Soalan Kejujuran</p>
+                </div>
+            </div>
+            
+            <hr class="border-slate-100 mb-4">
+            
+            <div class="mb-6">
+                <!-- Question -->
+                <p id="triviaQuestion" class="text-lg font-extrabold text-slate-800 leading-snug">如果踢球时不小心打碎了邻居的花盆，该怎么办？</p>
+            </div>
+            
+            <!-- Options List -->
+            <div class="space-y-3" id="triviaOptionsContainer">
+                <!-- Dynamic options generated here -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 2. SENTENCE UNSCRAMBLE MODAL -->
+    <div id="modalUnscramble" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl comic-border comic-shadow-lg max-w-xl w-full p-6 relative">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">🧩</span>
+                <div>
+                    <h3 class="text-2xl font-extrabold text-violet-500">诚实句子重组</h3>
+                    <p class="text-xs text-slate-400 font-semibold uppercase">Susun Semula Ayat</p>
+                </div>
+            </div>
+            
+            <hr class="border-slate-100 mb-4">
+            
+            <p class="text-sm font-bold text-indigo-500 mb-4"><i class="fa-solid fa-puzzle-piece"></i> 任务：点击下方的字卡，拼凑出正确的道德句子。</p>
+            
+            <!-- Answer Zone -->
+            <div class="min-h-[80px] bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-2xl p-4 flex flex-wrap gap-2 items-center mb-6" id="unscrambleAnswerArea">
+                <!-- Inserted words -->
+                <span class="text-slate-400 italic text-sm mx-auto">点击字卡到这里拼写...</span>
+            </div>
+
+            <!-- Words Pool -->
+            <div class="flex flex-wrap gap-2 justify-center mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200" id="unscramblePoolArea">
+                <!-- Dynamic Word Chips -->
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-4">
+                <button onclick="clearUnscramble()" class="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold rounded-xl border border-slate-400 comic-shadow transition-all text-sm">
+                    🧹 清空重来
+                </button>
+                <button onclick="submitUnscramble()" class="flex-1 py-3 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-extrabold rounded-xl border-2 border-slate-900 comic-shadow comic-btn-active transition-all text-sm">
+                    ✔️ 检查答案
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. ACTION SORTING MINI-GAME MODAL -->
+    <div id="modalSorting" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl comic-border comic-shadow-lg max-w-xl w-full p-6 relative">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">⚡</span>
+                    <div>
+                        <h3 class="text-2xl font-extrabold text-emerald-500">诚实闪电分类战</h3>
+                        <p class="text-xs text-slate-400 font-semibold uppercase">Kelaskan Amalan</p>
+                    </div>
+                </div>
+                <!-- Countdown -->
+                <div class="bg-rose-500 text-white font-extrabold text-lg px-4 py-2 rounded-2xl comic-border flex items-center gap-2">
+                    <i class="fa-solid fa-clock animate-pulse"></i> <span id="sortingTimer">15</span>s
+                </div>
+            </div>
+            
+            <hr class="border-slate-100 mb-4">
+            
+            <!-- Instructions -->
+            <p class="text-sm font-bold text-slate-500 mb-4 text-center">
+                将下面出现的行为分类到 <span class="text-emerald-500 font-black">【诚实】</span> 或 <span class="text-rose-500 font-black">【不诚实】</span>！
+            </p>
+
+            <!-- Card To Sort -->
+            <div class="bg-amber-50 border-2 border-slate-800 rounded-3xl p-6 min-h-[120px] flex items-center justify-center text-center text-xl font-bold text-slate-800 mb-6 comic-shadow" id="sortingCurrentCard">
+                <!-- Dynamic behavior item text -->
+                捡到邻居钱包主动归还
+            </div>
+
+            <!-- Sorting Buttons -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="sortItem(true)" class="py-4 bg-emerald-400 hover:bg-emerald-500 text-slate-950 font-black rounded-2xl border-2 border-slate-900 comic-shadow comic-btn-active text-lg transition-all flex flex-col items-center">
+                    <span>👍 诚实行为</span>
+                    <span class="text-xs opacity-75 mt-1">(Kejujuran)</span>
+                </button>
+                <button onclick="sortItem(false)" class="py-4 bg-rose-400 hover:bg-rose-500 text-white font-black rounded-2xl border-2 border-slate-900 comic-shadow comic-btn-active text-lg transition-all flex flex-col items-center">
+                    <span>👎 不诚实行为</span>
+                    <span class="text-xs opacity-75 mt-1">(Tidak Jujur)</span>
+                </button>
+            </div>
+
+            <!-- Score Progress in sorting -->
+            <div class="mt-4 text-center">
+                <p class="text-xs font-bold text-slate-400">目前得分: <span id="sortingScore" class="text-indigo-600 text-sm">0 / 4</span> (需要答对4个才算过关！)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. CHANCE CARD MODAL -->
+    <div id="modalChance" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-amber-100 rounded-3xl comic-border comic-shadow-lg max-w-sm w-full p-6 text-center relative border-4 border-amber-500">
+            <span class="text-5xl block mb-2">🍀</span>
+            <h3 class="text-2xl font-extrabold text-amber-700">邻里命运大转折</h3>
+            <p class="text-xs text-amber-600 font-semibold mb-4 uppercase">Kad Nasib Jiran</p>
+            
+            <hr class="border-amber-200 mb-4">
+            
+            <div class="bg-white rounded-2xl p-4 comic-border mb-6">
+                <p id="chanceText" class="text-lg font-bold text-slate-700">你在邻居阿姨外出时，准时帮她浇了花！邻居赞许你的诚实守信。</p>
+                <p id="chanceEffect" class="text-sm font-black text-emerald-500 mt-2">🌟 前进一步！</p>
+            </div>
+
+            <button onclick="closeChanceModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl comic-border comic-shadow comic-btn-active transition-all">
+                好的，我知道了！
+            </button>
+        </div>
+    </div>
+
+    <!-- FEEDBACK DIALOG (SUCCESS / FAIL OVERLAY) -->
+    <div id="feedbackOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center z-[100] p-4">
+        <div class="bg-white rounded-3xl comic-border comic-shadow-lg max-w-sm w-full p-6 text-center animate-bounce-in">
+            <div id="feedbackIcon" class="text-6xl mb-4">🎉</div>
+            <h3 id="feedbackTitle" class="text-2xl font-extrabold mb-2">答对了！太棒了！</h3>
+            <p id="feedbackText" class="text-slate-600 font-bold mb-6">你真是一个诚实的小邻居！</p>
+            <button onclick="closeFeedback()" class="px-8 py-3 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-extrabold rounded-xl border-2 border-slate-900 comic-shadow comic-btn-active transition-all">
+                继续下一步 Go!
+            </button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD / WINNER MODAL -->
+    <div id="modalWinner" class="fixed inset-0 bg-indigo-950/90 backdrop-blur-sm hidden flex items-center justify-center z-[110] p-4">
+        <div class="bg-white rounded-3xl comic-border comic-shadow-lg max-w-lg w-full p-6 text-center">
+            <span class="text-7xl block mb-2 floating">👑</span>
+            <h2 class="text-3xl font-black text-indigo-600 mb-1">大赢家诞生！</h2>
+            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Juara Kejujuran Kejiranan</p>
+            
+            <div class="bg-indigo-50 border-2 border-slate-800 rounded-3xl p-6 mb-6 comic-shadow">
+                <span id="winnerAvatar" class="text-6xl block mb-2">🦁</span>
+                <h3 id="winnerName" class="text-3xl font-black text-slate-800">小明</h3>
+                <p class="text-emerald-500 font-bold mt-1 text-sm"><i class="fa-solid fa-trophy"></i> 率先成功把诚实精神播撒到了整个社区！</p>
+            </div>
+
+            <h4 class="font-bold text-slate-500 mb-2">👑 荣誉排行榜 👑</h4>
+            <div id="leaderboardList" class="space-y-2 mb-6 max-h-[150px] overflow-y-auto pr-2">
+                <!-- Leaderboard ranking list -->
+            </div>
+
+            <button onclick="resetToSetup()" class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-black rounded-2xl border-2 border-slate-900 comic-shadow comic-btn-active text-lg transition-all">
+                🔄 重新开启一场新游戏
+            </button>
+        </div>
+    </div>
+
+
+    <!-- SOUND EFFECT GENERATOR (No file dependencies) -->
+    <script>
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        // Play synthetic sound effects
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                const now = audioCtx.currentTime;
+
+                if (type === 'dice') {
+                    // Roll sound (rumble)
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(100, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'success') {
+                    // Ding ding sound!
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'fail') {
+                    // Buzzer sound
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'chance') {
+                    // Magical chime
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.4); // D6
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.log("Audio not supported or initialized yet", e);
+            }
+        }
+    </script>
+
+    <!-- MAIN GAME LOGIC -->
+    <script>
+        
+        // Setup configuration
+        let playerCount = 6;
+        let players = [];
+        let currentPlayerIndex = 0;
+        const totalTiles = 15; // 0 (start) to 15 (end)
+
+        // Avatar Pool
+        const avatars = ["🦁", "🦊", "🐸", "🐱", "🐨", "🐼", "🐯", "🐰", "🐵"];
+        const playerColors = [
+            "bg-rose-500 border-rose-700 text-white",
+            "bg-amber-500 border-amber-700 text-white",
+            "bg-emerald-500 border-emerald-700 text-white",
+            "bg-sky-500 border-sky-700 text-white",
+            "bg-violet-500 border-violet-700 text-white",
+            "bg-indigo-500 border-indigo-700 text-white"
+        ];
+        const playerBadgeColors = [
+            "bg-rose-100 text-rose-700 border-rose-200",
+            "bg-amber-100 text-amber-700 border-amber-200",
+            "bg-emerald-100 text-emerald-700 border-emerald-200",
+            "bg-sky-100 text-sky-700 border-sky-200",
+            "bg-violet-100 text-violet-700 border-violet-200",
+            "bg-indigo-100 text-indigo-700 border-indigo-200"
+        ];
+
+        // Tile Type definitions
+        // 1-Trivia, 2-Unscramble, 3-Sorting, 4-Chance, 15-Finish
+        const tileConfig = {
+            1: { type: 'trivia', name: '道德问答', color: 'bg-amber-100 border-amber-400 text-amber-700' },
+            2: { type: 'unscramble', name: '句子重组', color: 'bg-violet-100 border-violet-400 text-violet-700' },
+            3: { type: 'sorting', name: '闪电分类', color: 'bg-emerald-100 border-emerald-400 text-emerald-700' },
+            4: { type: 'chance', name: '邻里命运', color: 'bg-yellow-100 border-yellow-400 text-yellow-700' },
+            
+            5: { type: 'trivia', name: '道德问答', color: 'bg-amber-100 border-amber-400 text-amber-700' },
+            6: { type: 'unscramble', name: '句子重组', color: 'bg-violet-100 border-violet-400 text-violet-700' },
+            7: { type: 'sorting', name: '闪电分类', color: 'bg-emerald-100 border-emerald-400 text-emerald-700' },
+            8: { type: 'chance', name: '邻里命运', color: 'bg-yellow-100 border-yellow-400 text-yellow-700' },
+            
+            9: { type: 'trivia', name: '道德问答', color: 'bg-amber-100 border-amber-400 text-amber-700' },
+            10: { type: 'unscramble', name: '句子重组', color: 'bg-violet-100 border-violet-400 text-violet-700' },
+            11: { type: 'sorting', name: '闪电分类', color: 'bg-emerald-100 border-emerald-400 text-emerald-700' },
+            12: { type: 'chance', name: '邻里命运', color: 'bg-yellow-100 border-yellow-400 text-yellow-700' },
+            
+            13: { type: 'trivia', name: '道德问答', color: 'bg-amber-100 border-amber-400 text-amber-700' },
+            14: { type: 'unscramble', name: '句子重组', color: 'bg-violet-100 border-violet-400 text-violet-700' },
+            15: { type: 'finish', name: '和谐家园', color: 'bg-rainbow bg-gradient-to-r from-red-200 via-yellow-200 to-emerald-200 border-slate-700' }
+        };
+
+        // Bank of Challenge Data
+        const triviaQuestions = [
+            {
+                q: "当在邻居 Ali 叔叔的门前捡到一串钥匙和 50 令吉现金，作为诚实的邻居你应该：",
+                options: [
+                    { t: "自己收起来拿去买喜欢的玩具", ok: false },
+                    { t: "当作没看到，踢进阴暗的水沟里", ok: false },
+                    { t: "物归原主，主动敲门还给 Ali 叔叔", ok: true }
+                ]
+            },
+            {
+                q: "不小心在邻居美玲家门外玩足球时打破了她家的漂亮花盆，她还没发现，你应当：",
+                options: [
+                    { t: "假装什么都没发生，并迅速跑回家假装写功课", ok: false },
+                    { t: "主动按门铃向美玲承认错误，诚恳地道歉并商量赔偿", ok: true },
+                    { t: "说是隔壁街的流浪猫跳过去撞倒的", ok: false }
+                ]
+            },
+            {
+                q: "你答应了林叔叔，在他去吉隆坡旅行的这三天帮他每天下午给花园的花浇水。这时你最喜欢的动画片开播了。你应该：",
+                options: [
+                    { t: "信守承诺，准时帮林叔叔给花浇水，错过的动画片可以看回放", ok: true },
+                    { t: "完全不去浇花，等林叔叔回来时谎称自己每天都去浇过了", ok: false },
+                    { t: "只浇第一天，后面两天因为太累了就没去，也不主动告诉他", ok: false }
+                ]
+            },
+            {
+                q: "在社区里，听到其他邻居在传关于隔壁陈叔叔家宠物狗的坏话或谣言，诚实的做法是：",
+                options: [
+                    { t: "加入他们，把故事编得更加夸张，发到社区群里", ok: false },
+                    { t: "不散播谣言，在被询问时如实指出没有亲眼目睹的事情不能乱说", ok: true },
+                    { t: "假装很了解，向大家胡乱编造不符合事实的故事", ok: false }
+                ]
+            },
+            {
+                q: "邻居陈阿姨非常信任你，把家里的备用钥匙交给你代为保管。你应该：",
+                options: [
+                    { t: "趁陈阿姨不在家，偷偷带朋友进去他们家探险和玩电脑", ok: false },
+                    { t: "妥善保管钥匙，不滥用邻居的信任，非紧急情况不擅自打开陈阿姨家门", ok: true },
+                    { t: "私自去配一把一模一样的钥匙带在身上", ok: false }
+                ]
+            }
+        ];
+
+        const unscrambleData = [
+            {
+                sentence: "我们 应该 诚实 地 归还 邻居 的 东西",
+                scrambled: ["诚实", "邻居", "东西", "我们", "地", "归还", "的", "应该"]
+            },
+            {
+                sentence: "我 勇敢地 向 邻居 承认 自己的 错误",
+                scrambled: ["邻居", "承认", "我", "自己的", "向", "错误", "勇敢地"]
+            },
+            {
+                sentence: "诚实 的 邻里 关系 能够 建立 互信",
+                scrambled: ["关系", "诚实", "建立", "邻里", "互信", "的", "能够"]
+            },
+            {
+                sentence: "我们 不能 贪心 侵占 邻居 掉落 的 财物",
+                scrambled: ["掉落", "我们", "邻居", "财物", "侵占", "不能", "的", "贪心"]
+            }
+        ];
+
+        const sortingPool = [
+            { text: "拾获邻居的花盆碎片，主动向邻居坦白是我踢球打碎的", isHonest: true },
+            { text: "答应帮出差的隔壁林伯伯浇花，结果天天在打游戏忘记浇", isHonest: false },
+            { text: "捡到隔壁张阿姨的信件，直接扔进垃圾桶并说自己从没见过", isHonest: false },
+            { text: "把跟邻居借的漫画书妥善保管，并按照约定好的时间准时归还", isHonest: true },
+            { text: "捡到隔壁小弟弟掉落的玩具，直接拿回自己房间偷偷藏起来", isHonest: false },
+            { text: "和邻居交往时不传播谣言，真诚、温和地和邻居说话交流", isHonest: true },
+            { text: "看守邻居的房子时，趁他们不在家偷偷采摘邻居果树的水果吃", isHonest: false },
+            { text: "答应代收邻居的快递包裹，收到后第一时间诚实交还给邻居", isHonest: true }
+        ];
+
+        const chanceCards = [
+            { text: "你对邻居一向诚实友好，美玲阿姨特地送来好吃的椰浆饭表扬你！", effect: 1, textEffect: "✨ 诚实的人最受尊敬，前进 1 步！" },
+            { text: "你借了隔壁小强的脚踏车，不小心刮花了。你主动向他认错赔礼，小强原谅了你并夸奖你诚实。", effect: 1, textEffect: "✨ 敢于认错也是诚实，前进 1 步！" },
+            { text: "你在邻居背后议论他们的隐私，甚至添油加醋地传达。这让邻居非常伤心，你也感到万分内疚。", effect: -1, textEffect: "💨 乱传邻里流言是不诚实、不道德的，后退 1 步！" },
+            { text: "你在邻居家附近草地上玩飞盘，砸坏了路边篱笆，你害怕被责怪，撒谎说是别人弄的，结果当场被发现，失去信任。", effect: -1, textEffect: "💨 谎言终究会被揭穿，后退 1 步！" },
+            { text: "你答应了邻居去家里帮他们浇花，你不仅做到了，还帮他们顺便喂了可爱的小猫，获得极高信任度！", effect: 2, textEffect: "🎉 坚守信诺，邻里之星，大力前进 2 步！" }
+        ];
+
+        // Setup form renderer
+        function setPlayerCount(count) {
+            playerCount = count;
+            
+            // Adjust active buttons visual style
+            [2,3,4,6].forEach(c => {
+                const btn = document.getElementById(`btnCount${c}`);
+                if (c === count) {
+                    btn.className = "px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl border-2 border-slate-900 comic-shadow transition-all";
+                } else {
+                    btn.className = "px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded-xl border-2 border-indigo-300 transition-all";
+                }
+            });
+
+            renderPlayerInputs();
+        }
+
+        function renderPlayerInputs() {
+            const container = document.getElementById('playerInputsContainer');
+            container.innerHTML = '';
+            
+            for(let i = 0; i < playerCount; i++) {
+                const avatar = avatars[i % avatars.length];
+                const placeholder = `玩家 ${i + 1}`;
+                const nameVal = i === 0 ? "轩轩" : i === 1 ? "小乐" : i === 2 ? "爱丽" : i === 3 ? "美美" : i === 4 ? "阿星" : "大勇";
+                
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border-2 border-slate-300";
+                div.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl border-2 border-slate-800 bg-white comic-shadow">
+                        ${avatar}
+                    </div>
+                    <div class="flex-grow">
+                        <label class="block text-xs font-black text-slate-500 mb-0.5">PLAYER ${i + 1}</label>
+                        <input type="text" id="playerNameInput_${i}" value="${nameVal}" placeholder="${placeholder}" 
+                               class="w-full bg-white px-3 py-1.5 rounded-lg border-2 border-slate-300 focus:border-indigo-500 outline-none font-bold text-sm">
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        // Initialize setup view
+        window.onload = function() {
+            setPlayerCount(6); // Default 6 players
+        };
+
+        // START THE ADVENTURE
+        function startGame() {
+            players = [];
+            for (let i = 0; i < playerCount; i++) {
+                const nameInput = document.getElementById(`playerNameInput_${i}`);
+                let name = nameInput.value.trim();
+                if(!name) name = `玩家 ${i+1}`;
+                
+                players.push({
+                    id: i,
+                    name: name,
+                    avatar: avatars[i % avatars.length],
+                    position: 0, // Starts at tile 0
+                    color: playerColors[i % playerColors.length],
+                    badgeColor: playerBadgeColors[i % playerBadgeColors.length]
+                });
+            }
+
+            currentPlayerIndex = 0;
+            
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+
+            // Render Map Tiles
+            renderMap();
+            // Update UI components
+            updateActivePlayerUI();
+            updateProgressCards();
+        }
+
+        function resetToSetup() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('modalWinner').classList.add('hidden');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+
+
+        // RENDER THE BOARD 
+        function renderMap() {
+            const grid = document.getElementById('gameBoardGrid');
+            grid.innerHTML = '';
+
+            // Grid Tiles generation (1 to 15)
+            // Layout order: 1, 2, 3, 4, 5, 
+            //               10, 9, 8, 7, 6, 
+            //               11, 12, 13, 14, 15 (Snaking layout)
+            const mapLayout = [
+                1, 2, 3, 4, 5,
+                10, 9, 8, 7, 6,
+                11, 12, 13, 14, 15
+            ];
+
+            mapLayout.forEach((tileNum) => {
+                const conf = tileConfig[tileNum];
+                const tileDiv = document.createElement('div');
+                tileDiv.id = `tile_${tileNum}`;
+                tileDiv.className = `board-tile ${conf.color} rounded-2xl border-4 border-slate-900 p-2 flex flex-col justify-between min-h-[100px] comic-shadow relative`;
+                
+                // Icon picker for tile types
+                let typeIcon = '💡';
+                if(conf.type === 'unscramble') typeIcon = '🧩';
+                if(conf.type === 'sorting') typeIcon = '⚡';
+                if(conf.type === 'chance') typeIcon = '🍀';
+                if(conf.type === 'finish') typeIcon = '🏆';
+
+                tileDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-black bg-slate-900 text-white rounded-full w-5 h-5 flex items-center justify-center">${tileNum}</span>
+                        <span class="text-sm">${typeIcon}</span>
+                    </div>
+                    <div class="text-center font-black text-xs leading-tight mb-1">${conf.name}</div>
+                    
+                    <!-- Token Container -->
+                    <div id="tileTokens_${tileNum}" class="flex flex-wrap gap-1 justify-center mt-auto min-h-[24px] bg-white/40 rounded-lg p-0.5">
+                        <!-- Dynamic Player Avatars here -->
+                    </div>
+                `;
+                grid.appendChild(tileDiv);
+            });
+
+            // Update positions of all players
+            updatePlayerTokensOnMap();
+        }
+
+        function updatePlayerTokensOnMap() {
+            // Clear all token containers
+            for(let i = 1; i <= totalTiles; i++) {
+                const container = document.getElementById(`tileTokens_${i}`);
+                if(container) container.innerHTML = '';
+            }
+
+            // Put player tokens
+            players.forEach(p => {
+                if(p.position > 0) {
+                    const container = document.getElementById(`tileTokens_${p.position}`);
+                    if (container) {
+                        const token = document.createElement('span');
+                        token.className = `player-token w-6 h-6 rounded-full flex items-center justify-center text-xs comic-border shadow-md animate-pulse ${p.color}`;
+                        token.innerText = p.avatar;
+                        token.title = p.name;
+                        container.appendChild(token);
+                    }
+                }
+            });
+        }
+
+        // Update active player's HUD
+        function updateActivePlayerUI() {
+            const activePlayer = players[currentPlayerIndex];
+            document.getElementById('activeName').innerText = activePlayer.name;
+            document.getElementById('activeAvatar').innerText = activePlayer.avatar;
+            document.getElementById('activeTileNum').innerText = activePlayer.position;
+
+            // Reset dice display
+            document.getElementById('diceBox').innerText = "🎲";
+            document.getElementById('diceBox').className = "w-20 h-20 mx-auto bg-white border-4 border-slate-900 rounded-2xl comic-shadow flex items-center justify-center text-4xl font-black text-indigo-600 transition-all duration-300 cursor-pointer hover:rotate-6";
+            
+            // Enable dice roll button
+            document.getElementById('btnRoll').disabled = false;
+            document.getElementById('btnRoll').classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // Update lower leader dashboard
+        function updateProgressCards() {
+            const container = document.getElementById('playerProgressCards');
+            container.innerHTML = '';
+
+            players.forEach(p => {
+                const activeBorder = p.id === currentPlayerIndex ? 'border-indigo-600 border-dashed' : 'border-slate-300';
+                const card = document.createElement('div');
+                card.className = `p-2 rounded-xl border-2 ${activeBorder} bg-white flex flex-col items-center text-center shadow-sm relative`;
+                
+                if (p.id === currentPlayerIndex) {
+                    card.innerHTML += `<span class="absolute -top-2 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider">Turn</span>`;
+                }
+
+                card.innerHTML += `
+                    <div class="w-8 h-8 rounded-lg ${p.color} border-2 border-slate-800 flex items-center justify-center text-lg mb-1">
+                        ${p.avatar}
+                    </div>
+                    <span class="text-xs font-black text-slate-700 truncate w-full">${p.name}</span>
+                    <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full mt-1">第 ${p.position} 格</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ROLL THE DICE (1 to 3)
+        let diceValue = 1;
+        function rollDice() {
+            playSound('dice');
+            const diceBox = document.getElementById('diceBox');
+            const btnRoll = document.getElementById('btnRoll');
+            
+            // Disable roll button during action
+            btnRoll.disabled = true;
+            btnRoll.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Visual rolling animation
+            let rollCount = 0;
+            const interval = setInterval(() => {
+                const tempNum = Math.floor(Math.random() * 3) + 1;
+                diceBox.innerText = tempNum;
+                rollCount++;
+                
+                if (rollCount > 6) {
+                    clearInterval(interval);
+                    
+                    // Final dice roll logic (1 - 3 only, to avoid rushing through 15 grid quickly)
+                    diceValue = Math.floor(Math.random() * 3) + 1;
+                    diceBox.innerText = diceValue;
+                    diceBox.classList.add('bg-yellow-300');
+                    
+                    setTimeout(() => {
+                        moveActivePlayer(diceValue);
+                    }, 600);
+                }
+            }, 100);
+        }
+
+
+        // MOVE LOGIC
+        function moveActivePlayer(steps) {
+            const player = players[currentPlayerIndex];
+            let targetPos = player.position + steps;
+
+            if (targetPos >= totalTiles) {
+                targetPos = totalTiles; // Clamp to finish line
+            }
+
+            player.position = targetPos;
+            updatePlayerTokensOnMap();
+            updateProgressCards();
+
+            // Check what tile they landed on
+            setTimeout(() => {
+                triggerTileChallenge(targetPos);
+            }, 500);
+        }
+
+        // TRIGGER CHALLENGE
+        function triggerTileChallenge(pos) {
+            if (pos === totalTiles) {
+                // Landed exactly on Finish Tile
+                declareWinner(players[currentPlayerIndex]);
+                return;
+            }
+
+            const conf = tileConfig[pos];
+            if (!conf) {
+                // Backup
+                moveToNextTurn();
+                return;
+            }
+
+            // Route to appropriate challenge modal
+            if (conf.type === 'trivia') {
+                initTriviaChallenge();
+            } else if (conf.type === 'unscramble') {
+                initUnscrambleChallenge();
+            } else if (conf.type === 'sorting') {
+                initSortingChallenge();
+            } else if (conf.type === 'chance') {
+                initChanceChallenge();
+            } else {
+                moveToNextTurn();
+            }
+        }
+
+        // BACKUP ACTION: IF FAIL RETREATS
+        function retreatActivePlayer() {
+            const player = players[currentPlayerIndex];
+            if (player.position > 0) {
+                player.position = Math.max(0, player.position - 1);
+            }
+            updatePlayerTokensOnMap();
+            updateProgressCards();
+        }
+
+        // MOVE TO NEXT TURN
+        function moveToNextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % playerCount;
+            updateActivePlayerUI();
+            updateProgressCards();
+        }
+
+        // GLOBAL FEEDBACK SYSTEM
+        let feedbackCallback = null;
+        function showFeedback(success, title, text, callback) {
+            playSound(success ? 'success' : 'fail');
+            
+            const overlay = document.getElementById('feedbackOverlay');
+            const icon = document.getElementById('feedbackIcon');
+            const tEl = document.getElementById('feedbackTitle');
+            const dEl = document.getElementById('feedbackText');
+            
+            icon.innerText = success ? "🎉" : "😢";
+            tEl.innerText = title;
+            tEl.className = success ? "text-2xl font-extrabold mb-2 text-emerald-500" : "text-2xl font-extrabold mb-2 text-rose-500";
+            dEl.innerText = text;
+            
+            feedbackCallback = callback;
+            overlay.classList.remove('hidden');
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedbackOverlay').classList.add('hidden');
+            if (feedbackCallback) {
+                feedbackCallback();
+            }
+        }
+
+        // ----------------- CHALLENGE ENGINES -----------------
+
+        // 1. TRIVIA CHALLENGE ENGINE
+        let currentTriviaItem = null;
+        function initTriviaChallenge() {
+            // Select random trivia
+            const idx = Math.floor(Math.random() * triviaQuestions.length);
+            currentTriviaItem = triviaQuestions[idx];
+            
+            document.getElementById('triviaQuestion').innerText = currentTriviaItem.q;
+            
+            const optionsContainer = document.getElementById('triviaOptionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            currentTriviaItem.options.forEach((opt, oIdx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => submitTriviaAnswer(oIdx);
+                btn.className = "w-full text-left p-4 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-400 rounded-2xl border-2 border-slate-300 font-bold transition-all flex items-center gap-3";
+                
+                const alpha = String.fromCharCode(65 + oIdx); // A, B, C
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-300 flex items-center justify-center text-indigo-700 text-sm font-black">${alpha}</span>
+                    <span class="text-slate-700 leading-snug flex-grow text-sm md:text-base">${opt.t}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('modalTrivia').classList.remove('hidden');
+        }
+
+        function submitTriviaAnswer(optIdx) {
+            document.getElementById('modalTrivia').classList.add('hidden');
+            const isCorrect = currentTriviaItem.options[optIdx].ok;
+            const activePlayer = players[currentPlayerIndex];
+
+            if (isCorrect) {
+                showFeedback(
+                    true, 
+                    "答对啦！真棒！", 
+                    `${activePlayer.name} 选择的诚实行为是正确的！赢得了邻里的一致好评，成功留在此格。`,
+                    () => { moveToNextTurn(); }
+                );
+            } else {
+                showFeedback(
+                    false, 
+                    "答错了，要小心！", 
+                    `${activePlayer.name} 做出了不诚实的决定。邻居们感到遗憾，退回一格。`,
+                    () => { 
+                        retreatActivePlayer();
+                        moveToNextTurn(); 
+                    }
+                );
+            }
+        }
+
+
+        // 2. UNSCRAMBLE CHALLENGE ENGINE
+        let currentUnscrambleItem = null;
+        let selectedUnscrambleWords = [];
+
+        function initUnscrambleChallenge() {
+            const idx = Math.floor(Math.random() * unscrambleData.length);
+            currentUnscrambleItem = unscrambleData[idx];
+            selectedUnscrambleWords = [];
+            
+            renderUnscramblePool();
+            renderUnscrambleAnswer();
+            
+            document.getElementById('modalUnscramble').classList.remove('hidden');
+        }
+
+        function renderUnscramblePool() {
+            const poolArea = document.getElementById('unscramblePoolArea');
+            poolArea.innerHTML = '';
+
+            currentUnscrambleItem.scrambled.forEach((word) => {
+                // If this word is already selected, don't show it in pool
+                const timesUsed = selectedUnscrambleWords.filter(w => w === word).length;
+                const totalTimesInScrambled = currentUnscrambleItem.scrambled.filter(w => w === word).length;
+                
+                if (timesUsed < totalTimesInScrambled) {
+                    const btn = document.createElement('button');
+                    btn.onclick = () => addWordToUnscramble(word);
+                    btn.className = "px-3 py-1.5 bg-white border-2 border-slate-900 rounded-xl font-bold hover:bg-violet-100 transition-all text-sm comic-shadow";
+                    btn.innerText = word;
+                    poolArea.appendChild(btn);
+                }
+            });
+        }
+
+        function renderUnscrambleAnswer() {
+            const ansArea = document.getElementById('unscrambleAnswerArea');
+            ansArea.innerHTML = '';
+
+            if (selectedUnscrambleWords.length === 0) {
+                ansArea.innerHTML = `<span class="text-slate-400 italic text-sm mx-auto">点击下方的字卡拼出正确的句子...</span>`;
+                return;
+            }
+
+            selectedUnscrambleWords.forEach((word, idx) => {
+                const chip = document.createElement('button');
+                chip.onclick = () => removeWordFromUnscramble(idx);
+                chip.className = "px-3 py-1.5 bg-violet-500 text-white rounded-xl font-black hover:bg-rose-500 transition-all text-sm border-2 border-slate-950 flex items-center gap-1.5";
+                chip.innerHTML = `${word} <i class="fa-solid fa-xmark text-[10px] opacity-70"></i>`;
+                ansArea.appendChild(chip);
+            });
+        }
+
+        function addWordToUnscramble(word) {
+            selectedUnscrambleWords.push(word);
+            renderUnscramblePool();
+            renderUnscrambleAnswer();
+        }
+
+        function removeWordFromUnscramble(index) {
+            selectedUnscrambleWords.splice(index, 1);
+            renderUnscramblePool();
+            renderUnscrambleAnswer();
+        }
+
+        function clearUnscramble() {
+            selectedUnscrambleWords = [];
+            renderUnscramblePool();
+            renderUnscrambleAnswer();
+        }
+
+        function submitUnscramble() {
+            const userSentence = selectedUnscrambleWords.join(' ').trim();
+            const correctSentence = currentUnscrambleItem.sentence.trim();
+            
+            document.getElementById('modalUnscramble').classList.add('hidden');
+            const activePlayer = players[currentPlayerIndex];
+
+            if (userSentence === correctSentence) {
+                showFeedback(
+                    true, 
+                    "句子重组大胜利！", 
+                    `你完成了：“${correctSentence}”。句意非常正确，邻里诚实宣言顺利通关！`,
+                    () => { moveToNextTurn(); }
+                );
+            } else {
+                showFeedback(
+                    false, 
+                    "拼写句子有误哦！", 
+                    `句子顺序有些不通畅呢。正确的句子应该是：\n“${correctSentence}”\n继续努力，后退一格！`,
+                    () => { 
+                        retreatActivePlayer();
+                        moveToNextTurn(); 
+                    }
+                );
+            }
+        }
+
+
+        // 3. SORTING GAME ENGINE (LIMIT 15s)
+        let sortingItems = [];
+        let sortingIndex = 0;
+        let sortingTargetPoints = 4; // Need to get 4 correct to win
+        let sortingPoints = 0;
+        let sortingTimerInterval = null;
+        let sortingTimeLeft = 15;
+
+        function initSortingChallenge() {
+            // Shuffle sorting pool and pick 6 items
+            sortingItems = [...sortingPool].sort(() => Math.random() - 0.5).slice(0, 6);
+            sortingIndex = 0;
+            sortingPoints = 0;
+            sortingTimeLeft = 15;
+            
+            document.getElementById('sortingScore').innerText = `0 / ${sortingTargetPoints}`;
+            document.getElementById('sortingTimer').innerText = sortingTimeLeft;
+            
+            updateSortingCard();
+
+            // Set up 15 seconds timer
+            clearInterval(sortingTimerInterval);
+            sortingTimerInterval = setInterval(() => {
+                sortingTimeLeft--;
+                document.getElementById('sortingTimer').innerText = sortingTimeLeft;
+                
+                if (sortingTimeLeft <= 0) {
+                    endSortingGame(false, "时间耗尽啦！");
+                }
+            }, 1000);
+
+            document.getElementById('modalSorting').classList.remove('hidden');
+        }
+
+        function updateSortingCard() {
+            if (sortingIndex >= sortingItems.length) {
+                // Out of items, check outcome
+                if (sortingPoints >= sortingTargetPoints) {
+                    endSortingGame(true);
+                } else {
+                    endSortingGame(false, "分类正确数不够哦！");
+                }
+                return;
+            }
+            document.getElementById('sortingCurrentCard').innerText = sortingItems[sortingIndex].text;
+        }
+
+        function sortItem(clickedHonest) {
+            const item = sortingItems[sortingIndex];
+            const isCorrect = item.isHonest === clickedHonest;
+
+            if (isCorrect) {
+                sortingPoints++;
+                playSound('success');
+            } else {
+                playSound('fail');
+            }
+
+            document.getElementById('sortingScore').innerText = `${sortingPoints} / ${sortingTargetPoints}`;
+            
+            // Check if player already secured enough points
+            if (sortingPoints >= sortingTargetPoints) {
+                endSortingGame(true);
+                return;
+            }
+
+            sortingIndex++;
+            updateSortingCard();
+        }
+
+        function endSortingGame(success, reason = "") {
+            clearInterval(sortingTimerInterval);
+            document.getElementById('modalSorting').classList.add('hidden');
+            
+            const activePlayer = players[currentPlayerIndex];
+
+            if (success) {
+                showFeedback(
+                    true, 
+                    "分类闪电通关！", 
+                    `${activePlayer.name} 在 15 秒内快速分辨出了诚实和不诚实的行为！思维敏捷，顺利通关！`,
+                    () => { moveToNextTurn(); }
+                );
+            } else {
+                showFeedback(
+                    false, 
+                    "分类大挑战落败！", 
+                    `${reason} 需要分类成功至少 ${sortingTargetPoints} 个行为才算过关哦。加把劲，退回一格！`,
+                    () => { 
+                        retreatActivePlayer();
+                        moveToNextTurn(); 
+                    }
+                );
+            }
+        }
+
+        // 4. CHANCE/DESTINY CARD ENGINE
+        let activeChanceCard = null;
+        function initChanceChallenge() {
+            playSound('chance');
+            const idx = Math.floor(Math.random() * chanceCards.length);
+            activeChanceCard = chanceCards[idx];
+
+            document.getElementById('chanceText').innerText = activeChanceCard.text;
+            document.getElementById('chanceEffect').innerText = activeChanceCard.textEffect;
+
+            if (activeChanceCard.effect > 0) {
+                document.getElementById('chanceEffect').className = "text-md font-black text-emerald-500 mt-2";
+            } else {
+                document.getElementById('chanceEffect').className = "text-md font-black text-rose-500 mt-2";
+            }
+
+            document.getElementById('modalChance').classList.remove('hidden');
+        }
+
+        function closeChanceModal() {
+            document.getElementById('modalChance').classList.add('hidden');
+            
+            const player = players[currentPlayerIndex];
+            player.position += activeChanceCard.effect;
+            
+            // Boundary checks
+            if (player.position < 0) player.position = 0;
+            if (player.position >= totalTiles) {
+                player.position = totalTiles;
+                updatePlayerTokensOnMap();
+                updateProgressCards();
+                setTimeout(() => {
+                    declareWinner(player);
+                }, 400);
+                return;
+            }
+
+            updatePlayerTokensOnMap();
+            updateProgressCards();
+            moveToNextTurn();
+        }
+
+
+        // 5. GAME WINNER OVERLAY
+        function declareWinner(winner) {
+            document.getElementById('winnerName').innerText = winner.name;
+            document.getElementById('winnerAvatar').innerText = winner.avatar;
+            
+            // Render Leaderboard
+            const sorted = [...players].sort((a, b) => b.position - a.position);
+            const lbList = document.getElementById('leaderboardList');
+            lbList.innerHTML = '';
+            
+            sorted.forEach((p, idx) => {
+                const li = document.createElement('div');
+                li.className = "flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200 text-sm";
+                li.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-xs text-slate-400">#${idx + 1}</span>
+                        <span class="w-6 h-6 rounded-md ${p.color} border border-slate-700 flex items-center justify-center text-xs">${p.avatar}</span>
+                        <span class="font-bold text-slate-700">${p.name}</span>
+                    </div>
+                    <span class="text-xs bg-indigo-50 px-2 py-0.5 rounded-full font-bold text-indigo-700">第 ${p.position} 格</span>
+                `;
+                lbList.appendChild(li);
+            });
+
+            document.getElementById('modalWinner').classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
