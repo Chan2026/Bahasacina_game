@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诚实冒险岛 - 3人乐学定制版</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入超可爱的 Google 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Gaegu:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans SC', 'Gaegu', 'ZCOOL KuaiLe', sans-serif;
+            background: linear-gradient(135deg, #fef2f2 0%, #f0f9ff 50%, #f0fdf4 100%);
+            user-select: none;
+            overflow-x: hidden;
+        }
+        /* AI 动态呼吸灯特效 */
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.6); }
+            50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.9); }
+        }
+        .title-font {
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+        /* 软萌3D立体按钮样式 */
+        .cute-btn-yellow {
+            background: linear-gradient(to bottom, #fef08a, #eab308);
+            border-bottom: 6px solid #ca8a04;
+            transition: all 0.1s ease;
+        }
+        .cute-btn-yellow:active {
+            border-bottom-width: 0px;
+            transform: translateY(6px);
+        }
+        .cute-btn-pink {
+            background: linear-gradient(to bottom, #fbcfe8, #f43f5e);
+            border-bottom: 6px solid #be123c;
+            transition: all 0.1s ease;
+        }
+        .cute-btn-pink:active {
+            border-bottom-width: 0px;
+            transform: translateY(6px);
+        }
+        /* 浮动和跳动动画 */
+        @keyframes cloudFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .floating-cloud {
+            animation: cloudFloat 4s ease-in-out infinite;
+        }
+        @keyframes hop {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-25px) scale(1.1); }
+        }
+        .hopping {
+            animation: hop 0.4s ease-out;
+        }
+        /* 旋转骰子动画 */
+        @keyframes spinDice {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .spinning {
+            animation: spinDice 0.5s ease-out;
+        }
+        /* 飘浮的气泡 */
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatBubble 12s linear infinite;
+        }
+        @keyframes floatBubble {
+            0% { transform: translateY(110vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+        }
+        /* 格子激活高亮 */
+        .active-island {
+            border-color: #f43f5e !important;
+            background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%) !important;
+            box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.4) !important;
+            transform: scale(1.08);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-2 sm:p-4 relative">
+
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0" id="bubble-bg">
+        <div class="bubble w-12 h-12" style="left: 8%; animation-delay: 0s; animation-duration: 13s;"></div>
+        <div class="bubble w-8 h-8" style="left: 22%; animation-delay: 2s; animation-duration: 9s;"></div>
+        <div class="bubble w-16 h-16" style="left: 48%; animation-delay: 3s; animation-duration: 16s;"></div>
+        <div class="bubble w-10 h-10" style="left: 72%; animation-delay: 1s; animation-duration: 11s;"></div>
+        <div class="bubble w-14 h-14" style="left: 88%; animation-delay: 5s; animation-duration: 14s;"></div>
+    </div>
+
+    <!-- ================= 游戏准备界面：起名字与角色定制 ================= -->
+    <div id="screen-setup" class="w-full max-w-4xl bg-white/95 backdrop-blur-md rounded-[2.5rem] p-6 sm:p-10 shadow-2xl border-8 border-amber-200 z-20 my-auto flex flex-col items-center">
+        <div class="text-6xl animate-bounce mb-2">🏝️</div>
+        <h1 class="text-4xl sm:text-5xl title-font text-amber-500 font-extrabold tracking-wider text-center drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]">诚实冒险岛</h1>
+        <p class="text-sm sm:text-base text-amber-600 font-bold mb-8 text-center">小朋友们，输入你们的名字，选一个可爱的小动物吧！✨</p>
+
+        <!-- 三人配置面板 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
+            <!-- 玩家一 -->
+            <div class="bg-sky-50 rounded-3xl p-5 border-4 border-sky-200 shadow-sm flex flex-col items-center">
+                <span class="bg-sky-500 text-white font-black px-4 py-1 rounded-full text-xs mb-3">玩家 1 🌟</span>
+                <input type="text" id="p1-name-input" value="小实" class="w-full text-center font-black text-slate-700 bg-white border-2 border-sky-300 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm mb-4" placeholder="输入玩家名字">
+                <div class="text-xs text-slate-500 font-bold mb-2">选择一个萌宠：</div>
+                <div class="grid grid-cols-3 gap-2" id="p1-avatar-box"></div>
+            </div>
+
+            <!-- 玩家二 -->
+            <div class="bg-amber-50 rounded-3xl p-5 border-4 border-amber-200 shadow-sm flex flex-col items-center">
+                <span class="bg-amber-500 text-white font-black px-4 py-1 rounded-full text-xs mb-3">玩家 2 🌟</span>
+                <input type="text" id="p2-name-input" value="小诚" class="w-full text-center font-black text-slate-700 bg-white border-2 border-amber-300 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm mb-4" placeholder="输入玩家名字">
+                <div class="text-xs text-slate-500 font-bold mb-2">选择一个萌宠：</div>
+                <div class="grid grid-cols-3 gap-2" id="p2-avatar-box"></div>
+            </div>
+
+            <!-- 玩家三 -->
+            <div class="bg-pink-50 rounded-3xl p-5 border-4 border-pink-200 shadow-sm flex flex-col items-center">
+                <span class="bg-pink-500 text-white font-black px-4 py-1 rounded-full text-xs mb-3">玩家 3 🌟</span>
+                <input type="text" id="p3-name-input" value="小雅" class="w-full text-center font-black text-slate-700 bg-white border-2 border-pink-300 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm mb-4" placeholder="输入玩家名字">
+                <div class="text-xs text-slate-500 font-bold mb-2">选择一个萌宠：</div>
+                <div class="grid grid-cols-3 gap-2" id="p3-avatar-box"></div>
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full max-w-sm py-4 cute-btn-yellow text-amber-950 font-black text-xl rounded-2xl shadow-xl flex items-center justify-center gap-2">
+            🚀 准备好啦，出发冒险！
+        </button>
+    </div>
+
+    <!-- ================= 游戏正式主界面 ================= -->
+    <div id="screen-game" class="w-full max-w-6xl flex flex-col items-center hidden z-10">
+        
+        <header class="w-full flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-xl border-4 border-amber-200 mb-4 gap-3">
+            <div class="flex items-center gap-3">
+                <div class="text-4xl animate-bounce">🏝️</div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl title-font text-amber-500 font-extrabold tracking-wider">诚实冒险岛</h1>
+                    <p class="text-xs text-amber-400 font-bold">走一走，每一格都是有趣的诚实小游戏哦！✨</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-1 bg-violet-100 border-2 border-violet-300 text-violet-700 px-3 py-1 rounded-full text-xs font-black animate-bounce">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+                    </span>
+                    <span>Gemini AI 伴读中 ✨</span>
+                </div>
+                <button onclick="toggleSound()" id="btn-audio" class="w-11 h-11 rounded-full bg-amber-400 hover:bg-amber-500 text-white flex items-center justify-center shadow-lg transition-all border-4 border-white active:scale-95">
+                    <i class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+                <button onclick="backToSetup()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-full text-xs shadow-md border-b-4 border-rose-700 active:border-b-0 active:translate-y-1 transition-all">
+                    <i class="fa-solid fa-rotate-right"></i> 重设名字角色
+                </button>
+            </div>
+        </header>
+
+        <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            
+            <!-- 棋盘网格区 -->
+            <section class="lg:col-span-8 bg-sky-100/90 border-4 border-sky-300 rounded-[2.5rem] p-3 sm:p-5 shadow-2xl relative min-h-[500px] flex flex-col justify-between overflow-hidden">
+                <div class="absolute inset-0 pointer-events-none opacity-20">
+                    <div class="absolute top-8 left-12 text-5xl floating-cloud">☁️</div>
+                    <div class="absolute bottom-24 right-8 text-6xl floating-cloud" style="animation-delay: 2s;">☁️</div>
+                </div>
+
+                <!-- 棋盘网格容器 (5行7列蛇形排布) -->
+                <div id="board-grid" class="grid grid-cols-5 sm:grid-cols-7 gap-2 sm:gap-3 relative py-4 z-10">
+                    <!-- 动态生成 33 个浮空岛屿，只写号码 -->
+                </div>
+
+                <!-- 棋子角色层 -->
+                <div id="tokens-layer" class="absolute inset-0 pointer-events-none">
+                    <!-- 玩家1 -->
+                    <div id="token-p1" class="absolute w-12 h-12 bg-sky-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-all duration-500 z-30" style="transform: translate(-100px, -100px);">
+                        <span id="p1-token-avatar" class="text-2xl">🐼</span>
+                        <div id="p1-token-tag" class="absolute -top-7 bg-sky-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border-2 border-white whitespace-nowrap">玩家1</div>
+                    </div>
+                    <!-- 玩家2 -->
+                    <div id="token-p2" class="absolute w-12 h-12 bg-amber-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-all duration-500 z-30" style="transform: translate(-100px, -100px);">
+                        <span id="p2-token-avatar" class="text-2xl">🦁</span>
+                        <div id="p2-token-tag" class="absolute -top-7 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border-2 border-white whitespace-nowrap">玩家2</div>
+                    </div>
+                    <!-- 玩家3 -->
+                    <div id="token-p3" class="absolute w-12 h-12 bg-pink-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center transition-all duration-500 z-30" style="transform: translate(-100px, -100px);">
+                        <span id="p3-token-avatar" class="text-2xl">🐰</span>
+                        <div id="p3-token-tag" class="absolute -top-7 bg-pink-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border-2 border-white whitespace-nowrap">玩家3</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 控制区 -->
+            <section class="lg:col-span-4 flex flex-col gap-4">
+                
+                <!-- 掷骰子控制面板 -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-xl border-4 border-sky-200 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <h3 class="text-lg font-black text-slate-700 mb-2">🎯 轮到谁走啦？</h3>
+                    
+                    <!-- 当前行动玩家 -->
+                    <div id="active-card" class="flex items-center gap-4 mb-4 bg-sky-50 px-6 py-2.5 rounded-2xl border-2 border-sky-100 shadow-sm w-full justify-center transition-all">
+                        <span id="active-p-emoji" class="text-4xl animate-bounce">🐼</span>
+                        <div class="text-left">
+                            <div id="active-p-name" class="font-extrabold text-sky-600 text-lg">小实</div>
+                            <div class="text-[10px] text-slate-400 font-bold">请点击右边的骰子！</div>
+                        </div>
+                    </div>
+
+                    <!-- 骰子 -->
+                    <div id="dice-wrapper" class="cursor-pointer select-none transition-transform transform hover:scale-105" onclick="userClickDice()">
+                        <div id="dice-element" class="w-20 h-20 bg-gradient-to-br from-yellow-300 to-amber-400 rounded-2xl border-4 border-white shadow-lg flex flex-col items-center justify-center text-white text-4xl font-extrabold relative transition-all active:scale-95">
+                            <span id="dice-face">?</span>
+                            <div class="absolute bottom-1 text-[8px] font-black text-amber-700 bg-white/85 px-1.5 py-0.5 rounded-full">点我掷 🎲</div>
+                        </div>
+                    </div>
+                    
+                    <div id="tip-bubble" class="mt-3 bg-emerald-50 text-emerald-800 px-3 py-2 rounded-xl text-xs font-bold border-2 border-emerald-100 w-full">
+                        准备完毕！点击骰子，看看谁跑得最快！
+                    </div>
+                </div>
+
+                <!-- 进度追踪面板 -->
+                <div class="bg-gradient-to-br from-pink-50 to-emerald-50 rounded-[2rem] p-4 shadow-xl border-4 border-emerald-200 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-black text-emerald-800 text-sm mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-flag-checkered text-emerald-500"></i> 三人冒险赛况
+                        </h4>
+                        
+                        <div class="space-y-2.5">
+                            <div id="score-card-1" class="flex justify-between items-center bg-white/90 p-2.5 rounded-xl border-2 border-sky-200">
+                                <span class="flex items-center gap-1.5 font-black text-sky-700 text-xs">
+                                    <span id="score-avatar-1">🐼</span> <span id="score-name-1">小实</span>
+                                </span>
+                                <span class="bg-sky-100 text-sky-800 font-extrabold px-2.5 py-0.5 rounded-full text-[11px]" id="score-p1">第 1 格</span>
+                            </div>
+                            <div id="score-card-2" class="flex justify-between items-center bg-white/90 p-2.5 rounded-xl border-2 border-amber-200">
+                                <span class="flex items-center gap-1.5 font-black text-amber-700 text-xs">
+                                    <span id="score-avatar-2">🦁</span> <span id="score-name-2">小诚</span>
+                                </span>
+                                <span class="bg-amber-100 text-amber-800 font-extrabold px-2.5 py-0.5 rounded-full text-[11px]" id="score-p2">第 1 格</span>
+                            </div>
+                            <div id="score-card-3" class="flex justify-between items-center bg-white/90 p-2.5 rounded-xl border-2 border-pink-200">
+                                <span class="flex items-center gap-1.5 font-black text-pink-700 text-xs">
+                                    <span id="score-avatar-3">🐰</span> <span id="score-name-3">小乐</span>
+                                </span>
+                                <span class="bg-pink-100 text-pink-800 font-extrabold px-2.5 py-0.5 rounded-full text-[11px]" id="score-p3">第 1 格</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-2 border-t border-dashed border-emerald-200 text-center text-[10px] text-emerald-600 font-bold">
+                        适合一二年级弱华语基础 · 互动式教学设计 📘
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ================= 互动题目弹窗 ================= -->
+    <div id="modal-event" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-[2rem] border-8 border-yellow-300 shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-all duration-300 flex flex-col">
+            <!-- 顶端控制 -->
+            <div class="bg-gradient-to-r from-yellow-300 to-amber-400 text-amber-900 p-3.5 font-black text-center flex justify-between items-center border-b-4 border-yellow-200">
+                <span class="text-base sm:text-lg flex items-center gap-1.5">🌟 诚实大冒险</span>
+                
+                <div class="flex items-center gap-2">
+                    <button id="btn-ai-tutor" onclick="askAITutor()" class="w-9 h-9 rounded-full bg-violet-600 text-white hover:bg-violet-700 flex items-center justify-center transition-all shadow border-2 border-violet-400 active:scale-90 ai-glow" title="AI 小精灵提点我">
+                        <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                    </button>
+                    <button onclick="speakCurrentEvent()" class="w-9 h-9 rounded-full bg-white text-amber-600 hover:bg-yellow-50 flex items-center justify-center transition-all shadow border-2 border-amber-300 active:scale-90" title="点我听故事">
+                        <i class="fa-solid fa-volume-high text-base"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 题目内容 -->
+            <div class="p-5 flex flex-col items-center text-center">
+                <!-- AI 提点气泡框 -->
+                <div id="ai-tutor-bubble" class="hidden w-full bg-violet-50 border-2 border-violet-200 text-violet-900 rounded-2xl p-3 text-xs font-black text-left mb-3 relative animate-pulse">
+                    <div class="flex items-center gap-1.5 mb-1 text-violet-700">
+                        <span>✨ AI 小精灵提点：</span>
+                    </div>
+                    <p id="ai-tutor-text" class="leading-relaxed text-slate-700"></p>
+                </div>
+
+                <div id="event-emoji" class="text-5xl mb-2 animate-bounce">❓</div>
+                <div id="event-title" class="text-base font-black text-slate-500 mb-1">第几格大挑战</div>
+                
+                <!-- 浅白的核心题目 -->
+                <div id="event-desc" class="text-slate-800 text-sm sm:text-base mb-4 leading-relaxed bg-pink-50/50 p-3 rounded-xl border-2 border-pink-100/80 w-full font-bold">
+                    内容加载中...
+                </div>
+                
+                <!-- 动态变化选项展示盒 -->
+                <div id="event-interaction-box" class="w-full mb-4">
+                    <!-- 这里会动态渲染不同题型的解答区域 -->
+                </div>
+
+                <!-- 答对/答错反馈展示 -->
+                <div id="event-feedback" class="w-full hidden rounded-xl p-3 text-xs sm:text-sm font-black mb-3 text-left border-4">
+                    反馈信息
+                </div>
+
+                <!-- 继续行动 -->
+                <button id="btn-next-step" onclick="closeEventModal()" class="hidden w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl shadow-md border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 transition-all text-sm">
+                    我知道啦！快快前进 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 胜利和课后大讨论弹窗 ================= -->
+    <div id="modal-win" class="fixed inset-0 bg-sky-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div id="confetti-holder" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+        
+        <div class="bg-white rounded-[2.5rem] border-8 border-emerald-400 shadow-2xl max-w-lg w-full p-5 sm:p-7 text-center relative z-10 max-h-[92vh] overflow-y-auto">
+            <div class="text-6xl mb-2 animate-bounce">👑</div>
+            <h2 class="text-2xl font-black text-emerald-600 title-font mb-1">成功抵达【诚实岛】！</h2>
+            <p class="text-slate-500 text-xs font-bold mb-4" id="win-message">恭喜小朋友！</p>
+            
+            <!-- AI 专属诚实授勋证书 -->
+            <div id="ai-cert-container" class="bg-violet-50 border-4 border-violet-200 rounded-2xl p-4 text-left mb-5">
+                <h3 class="font-black text-violet-800 text-sm mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-medal text-lg text-violet-500"></i> ✨ AI 专属诚实勋章表扬信
+                </h3>
+                <div id="ai-cert-loading" class="text-xs text-slate-400 font-bold py-3 flex items-center gap-2 justify-center">
+                    <i class="fa-solid fa-spinner animate-spin text-violet-500 text-sm"></i>
+                    <span>Gemini AI 正在努力给诚实的小朋友写表扬信...</span>
+                </div>
+                <div id="ai-cert-content" class="text-xs text-slate-700 font-bold leading-relaxed hidden whitespace-pre-line bg-white/80 p-3 rounded-xl border border-violet-100">
+                </div>
+            </div>
+
+            <!-- 课后思维大提问 -->
+            <div class="bg-amber-50 border-4 border-amber-200 rounded-xl p-3.5 text-left mb-5">
+                <h3 class="font-black text-amber-800 text-sm mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-question text-lg text-amber-500"></i> 课后小反思（集亮 4 颗星星）
+                </h3>
+                <p class="text-[11px] text-amber-700 leading-relaxed mb-3 font-bold">
+                    如果不诚实，会带来什么结果？请点击找出 4 个<b>坏结果</b>：
+                </p>
+
+                <!-- 反思连线/配对块 -->
+                <div class="grid grid-cols-2 gap-2" id="reflection-box">
+                    <div onclick="clickReflectionItem(this, true)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between">
+                        <span>💔 没人相信我了</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                    <div onclick="clickReflectionItem(this, false)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between opacity-80">
+                        <span>🎁 得到很多礼物</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                    <div onclick="clickReflectionItem(this, true)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between">
+                        <span>😢 爸爸妈妈伤心</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                    <div onclick="clickReflectionItem(this, false)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between opacity-80">
+                        <span>💯 考试拿到满分</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                    <div onclick="clickReflectionItem(this, true)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between">
+                        <span>🥺 心里感到难受</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                    <div onclick="clickReflectionItem(this, true)" class="bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between">
+                        <span>👋 同学不跟我玩了</span>
+                        <span class="star-icon text-slate-200">★</span>
+                    </div>
+                </div>
+
+                <!-- 集满4颗星提示 -->
+                <div class="text-center mt-3 hidden" id="reflection-win-msg">
+                    <span class="bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full animate-bounce inline-block">
+                        🎉 太棒了！你找齐了4个不诚实结果！你是个诚实乖宝宝！
+                    </span>
+                </div>
+            </div>
+
+            <button onclick="backToSetup()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-black text-base rounded-xl shadow-md border-b-4 border-pink-700 active:border-b-0 active:translate-y-1 transition-all">
+                再玩一局！ 🎮
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= 游戏核心引擎与情境库 ================= -->
+    <script>
+        // Gemini API 基础配置 (空字符串运行时将由 Canvas 自动填补 API 密钥)
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        // 游戏状态
+        let hasSound = true;
+        let players = [
+            { id: 1, name: "小实", avatar: "🐼", pos: 1, color: "bg-sky-400" },
+            { id: 2, name: "小诚", avatar: "🦁", pos: 1, color: "bg-amber-400" },
+            { id: 3, name: "小雅", avatar: "🐰", pos: 1, color: "bg-pink-400" }
+        ];
+        let currentPlayerIndex = 0; // 0=玩家1, 1=玩家2, 2=玩家3
+        let diceRolling = false;
+        let selectedReflectionStars = 0;
+
+        // 动物角色选项库
+        const animalAvatars = ["🐼", "🦁", "🐰", "🦊", "🐱", "🐨"];
+        let p1SelAvatar = "🐼";
+        let p2SelAvatar = "🦁";
+        let p3SelAvatar = "🐰";
+
+        // Web Audio 音效引擎
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playWebSound(type) {
+            if (!hasSound) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                const t = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(450, t);
+                    osc.frequency.exponentialRampToValueAtTime(900, t + 0.1);
+                    gainNode.gain.setValueAtTime(0.12, t);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                } else if (type === 'dice') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(200, t);
+                    osc.frequency.linearRampToValueAtTime(700, t + 0.4);
+                    gainNode.gain.setValueAtTime(0.18, t);
+                    gainNode.gain.linearRampToValueAtTime(0.01, t + 0.4);
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+                } else if (type === 'yes') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, t); // C5
+                    osc.frequency.setValueAtTime(659.25, t + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, t + 0.2); // G5
+                    osc.frequency.setValueAtTime(1046.50, t + 0.3); // C6
+                    gainNode.gain.setValueAtTime(0.15, t);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.55);
+                    osc.start(t);
+                    osc.stop(t + 0.55);
+                } else if (type === 'no') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(280, t);
+                    osc.frequency.linearRampToValueAtTime(120, t + 0.35);
+                    gainNode.gain.setValueAtTime(0.15, t);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+                } else if (type === 'victory') {
+                    const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+                    notes.forEach((freq, index) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        noteOsc.frequency.setValueAtTime(freq, t + index * 0.08);
+                        noteGain.gain.setValueAtTime(0.1, t + index * 0.08);
+                        noteGain.gain.exponentialRampToValueAtTime(0.01, t + index * 0.08 + 0.18);
+                        noteOsc.start(t + index * 0.08);
+                        noteOsc.stop(t + index * 0.08 + 0.18);
+                    });
+                }
+            } catch (err) {
+                console.log("Web Audio Context error:", err);
+            }
+        }
+
+        // 语音朗读TTS
+        function speakText(txt) {
+            if (!hasSound) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(txt);
+                u.lang = 'zh-CN';
+                u.rate = 0.85; // 故意调慢语速
+                u.pitch = 1.3; // 偏可爱活泼音调
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function toggleSound() {
+            hasSound = !hasSound;
+            const btn = document.getElementById('btn-audio');
+            if (hasSound) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-lg"></i>`;
+                btn.className = "w-11 h-11 rounded-full bg-amber-400 hover:bg-amber-500 text-white flex items-center justify-center shadow-lg transition-all border-4 border-white active:scale-95";
+                playWebSound('click');
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-lg"></i>`;
+                btn.className = "w-11 h-11 rounded-full bg-slate-400 hover:bg-slate-500 text-white flex items-center justify-center shadow-lg transition-all border-4 border-white active:scale-95";
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        function renderSetupOptions() {
+            const boxes = ['p1-avatar-box', 'p2-avatar-box', 'p3-avatar-box'];
+            const currentSelected = [p1SelAvatar, p2SelAvatar, p3SelAvatar];
+
+            boxes.forEach((boxId, index) => {
+                const box = document.getElementById(boxId);
+                box.innerHTML = '';
+                animalAvatars.forEach(avatar => {
+                    const isSelected = avatar === currentSelected[index];
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `text-2xl p-1.5 rounded-xl border-4 transition-all ${
+                        isSelected 
+                        ? 'border-pink-400 bg-pink-100 scale-110 shadow-md' 
+                        : 'border-slate-100 bg-white hover:border-slate-300'
+                    }`;
+                    btn.innerText = avatar;
+                    btn.onclick = () => {
+                        playWebSound('click');
+                        if (index === 0) p1SelAvatar = avatar;
+                        else if (index === 1) p2SelAvatar = avatar;
+                        else p3SelAvatar = avatar;
+                        renderSetupOptions();
+                    };
+                    box.appendChild(btn);
+                });
+            });
+        }
+
+        function startGame() {
+            playWebSound('click');
+            
+            // 读取用户输入名字与定制化宠物
+            players[0].name = document.getElementById('p1-name-input').value.trim() || "小实";
+            players[0].avatar = p1SelAvatar;
+            
+            players[1].name = document.getElementById('p2-name-input').value.trim() || "小诚";
+            players[1].avatar = p2SelAvatar;
+
+            players[2].name = document.getElementById('p3-name-input').value.trim() || "小雅";
+            players[2].avatar = p3SelAvatar;
+
+            // 同步棋子DOM上的宠物和自定义签名
+            document.getElementById('p1-token-avatar').innerText = players[0].avatar;
+            document.getElementById('p1-token-tag').innerText = players[0].name;
+
+            document.getElementById('p2-token-avatar').innerText = players[1].avatar;
+            document.getElementById('p2-token-tag').innerText = players[1].name;
+
+            document.getElementById('p3-token-avatar').innerText = players[2].avatar;
+            document.getElementById('p3-token-tag').innerText = players[2].name;
+
+            // 同步进度卡片
+            document.getElementById('score-avatar-1').innerText = players[0].avatar;
+            document.getElementById('score-name-1').innerText = players[0].name;
+            document.getElementById('score-avatar-2').innerText = players[1].avatar;
+            document.getElementById('score-name-2').innerText = players[1].name;
+            document.getElementById('score-avatar-3').innerText = players[2].avatar;
+            document.getElementById('score-name-3').innerText = players[2].name;
+
+            // 切换窗口
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+
+            resetGame();
+        }
+
+        function backToSetup() {
+            playWebSound('click');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-setup').classList.remove('hidden');
+            renderSetupOptions();
+        }
+
+        // ================= 31个诚实高频情景互动题目库 (适合一二年级程度，词语浅白，并匹配图片文件 references) =================
+        const boardQuestions = {
+            2: {
+                type: 'choice',
+                emoji: '✏️',
+                desc: "看到桌上有一支可爱的铅笔，应该：",
+                choices: [
+                    { text: "👍 还给主人 (对)", isCorrect: true, feedback: "对！还给别人是诚实的好习惯！" },
+                    { text: "👎 悄悄放进书包 (错)", isCorrect: false, feedback: "不对！别人的东西不能拿。" }
+                ]
+            },
+            3: {
+                type: 'unscramble',
+                emoji: '🗣️',
+                desc: "请把卡片排成一句诚实的话：",
+                words: ["说", "我", "真话"],
+                correctAnswer: "我说真话",
+                feedback: "太棒了！“我说真话”，大家最喜欢你了！"
+            },
+            4: {
+                type: 'match',
+                emoji: '🍬',
+                desc: "找一找，点击配对好行为和坏行为：",
+                left: ["不说谎", "骗人"],
+                right: ["对 👍", "错 👎"],
+                pairs: { "不说谎": "对 👍", "骗人": "错 👎" },
+                feedback: "对啦！不撒谎是对的，骗人是错的！"
+            },
+            5: {
+                type: 'reward',
+                emoji: '📚',
+                desc: "【老师，您多给了一分。】你老实告诉老师，老师夸奖了你！前进2步！",
+                steps: 2
+            },
+            6: {
+                type: 'choice',
+                emoji: '🥛',
+                desc: "不小心打破了妈妈心爱的杯子，应该：",
+                choices: [
+                    { text: "👍 承认是自己打破的 (对)", isCorrect: true, feedback: "太棒了！敢于承认错误最诚实！" },
+                    { text: "👎 假装不知道 (错)", isCorrect: false, feedback: "不可以隐瞒哦，妈妈会担心的。" }
+                ]
+            },
+            7: {
+                type: 'unscramble',
+                emoji: '💖',
+                desc: "请把下面的词语拼成正确的句子：",
+                words: ["不", "撒谎", "我"],
+                correctAnswer: "我不撒谎",
+                feedback: "真聪明！“我不撒谎”！"
+            },
+            8: {
+                type: 'match',
+                emoji: '🧸',
+                desc: "连一连，看谁找得准：",
+                left: ["借书要还", "拿人玩具"],
+                right: ["好行为 🌟", "坏习惯 ❌"],
+                pairs: { "借书要还": "好行为 🌟", "拿人玩具": "坏习惯 ❌" },
+                feedback: "真聪明！借别人的东西必须要归还哦！"
+            },
+            9: {
+                type: 'punish',
+                emoji: '⏰',
+                desc: "【说谎。】你因为赖床迟到，骗老师说生病了。后退2步去反省！",
+                steps: -2
+            },
+            10: {
+                type: 'choice',
+                emoji: '🪙',
+                desc: "买面包时阿姨多找了你一块钱，应该：",
+                choices: [
+                    { text: "👍 还给食堂阿姨 (对)", isCorrect: true, feedback: "对！多找的钱不是我们的，要还回去！" },
+                    { text: "👎 拿去买糖果吃 (错)", isCorrect: false, feedback: "不问自取是不对的，要老实哦。" }
+                ]
+            },
+            11: {
+                type: 'unscramble',
+                emoji: '🐼',
+                desc: "重新排好句子：",
+                words: ["我是", "诚实", "娃"],
+                correctAnswer: "我是诚实娃",
+                feedback: "对啦！“我是诚实娃”！小熊猫给你鼓掌！"
+            },
+            12: {
+                type: 'match',
+                emoji: '📝',
+                desc: "看谁配对得对：",
+                left: ["自己做答案", "抄人答案"],
+                right: ["好孩子 👍", "作弊 👎"],
+                pairs: { "自己做答案": "好孩子 👍", "抄人答案": "作弊 👎" },
+                feedback: "考场上要靠自己的实力，不偷看别人！"
+            },
+            13: {
+                type: 'choice',
+                emoji: '📖',
+                desc: "借同桌的漫画书不小心撕破了，应该：",
+                choices: [
+                    { text: "👍 补好并跟同桌道歉 (对)", isCorrect: true, feedback: "诚恳道歉并努力补偿，这才是好伙伴！" },
+                    { text: "👎 扔进垃圾桶里 (错)", isCorrect: false, feedback: "撕坏了不能逃避责任哦！" }
+                ]
+            },
+            14: {
+                type: 'unscramble',
+                emoji: '🤝',
+                desc: "词语排排队：",
+                words: ["不", "骗人", "我们"],
+                correctAnswer: "我们不骗人",
+                feedback: "没错！“我们不骗人”，诚实的小开发最棒！"
+            },
+            15: {
+                type: 'ai-mystery',
+                emoji: '🔮',
+                desc: "踩入了【AI 幻境岛】，Gemini 小精灵正在帮你变出一道神奇的选择题...",
+            },
+            16: {
+                type: 'match',
+                emoji: '🎒',
+                desc: "找一找对错连线：",
+                left: ["捡到书包", "偷拿书包"],
+                right: ["还给同学 👦", "是不诚实 🙅"],
+                pairs: { "捡到书包": "还给同学 👦", "偷拿书包": "是不诚实 🙅" },
+                feedback: "全对！捡到失物必须交给老师或者失主！"
+            },
+            17: {
+                type: 'choice',
+                emoji: '🧹',
+                desc: "不小心把同学的桌子弄脏了，应该：",
+                choices: [
+                    { text: "👍 主动擦干净并认错 (对)", isCorrect: true, feedback: "有担当，敢于承认并收拾，太棒了！" },
+                    { text: "👎 悄悄跑掉 (错)", isCorrect: false, feedback: "悄悄跑掉是不负有责任心的坏行为。" }
+                ]
+            },
+            18: {
+                type: 'unscramble',
+                emoji: '🌟',
+                desc: "词句排排队：",
+                words: ["孩子", "最美", "诚实"],
+                correctAnswer: "诚实孩子最美",
+                feedback: "太好听了！“诚实孩子最美”！"
+            },
+            19: {
+                type: 'choice',
+                emoji: '🏡',
+                desc: "不小心把学校的扫帚弄坏了，你应该：",
+                choices: [
+                    { text: "👍 举手向老师承认 (对)", isCorrect: true, feedback: "勇敢举手，老师会因为你的诚实原谅你！" },
+                    { text: "👎 悄悄藏起来 (错)", isCorrect: false, feedback: "不可以推卸责任和藏匿哦！" }
+                ]
+            },
+            20: {
+                type: 'punish',
+                emoji: '🪟',
+                desc: "【不敢承认破坏学校公物。】玩足球砸坏窗户却撒谎说是风吹倒的，退后2步！",
+                steps: -2
+            },
+            21: {
+                type: 'match',
+                emoji: '💬',
+                desc: "点击把词语和意思配对好：",
+                left: ["老实", "吹牛"],
+                right: ["说真话 😄", "说假话 😢"],
+                pairs: { "老实": "说真话 😄", "吹牛": "说假话 😢" },
+                feedback: "对啦，诚实就是说真话，撒谎则是说假话！"
+            },
+            22: {
+                type: 'choice',
+                emoji: '🎁',
+                desc: "看见同桌偷偷在老师皮包里拿粉笔，你应该：",
+                choices: [
+                    { text: "👍 劝阻他并告诉老师 (对)", isCorrect: true, feedback: "帮助同伴改邪归正，也是诚实！" },
+                    { text: "👎 帮同桌保密 (错)", isCorrect: false, feedback: "帮坏行为打掩护是不对的。" }
+                ]
+            },
+            23: {
+                type: 'unscramble',
+                emoji: '🦁',
+                desc: "词句重组：",
+                words: ["不", "说谎", "我"],
+                correctAnswer: "我不说谎",
+                feedback: "正确！“我不说谎”，真是一个老实的孩子！"
+            },
+            24: {
+                type: 'choice',
+                emoji: '🧤',
+                desc: "在操场上捡到一只可爱的手套，你应该：",
+                choices: [
+                    { text: "👍 放在失物招领处 (对)", isCorrect: true, feedback: "棒！丢手套的同学一定非常着急。" },
+                    { text: "👎 塞进自己的兜里 (错)", isCorrect: false, feedback: "别人的东西，我们坚决不能拿。" }
+                ]
+            },
+            25: {
+                type: 'ai-mystery',
+                emoji: '🔮',
+                desc: "踩入了第二处【AI 幻境岛】，Gemini 小精灵正在冥想全新的题目...",
+            },
+            26: {
+                type: 'match',
+                emoji: '🍉',
+                desc: "选择诚实的行为分类配对：",
+                left: ["借橡皮要还", "借橡皮不还"],
+                right: ["守信用 🥇", "不守信用 ❌"],
+                pairs: { "借橡皮要还": "守信用 🥇", "借橡皮不还": "不守信用 ❌" },
+                feedback: "太棒了！答应别人的事情，一定要努力兑现！"
+            },
+            27: {
+                type: 'choice',
+                emoji: '⚽',
+                desc: "不小心用球扔到了低年级的小妹妹，你应该：",
+                choices: [
+                    { text: "👍 主动过去赔礼道歉 (对)", isCorrect: true, feedback: "非常懂礼貌！小妹妹一定会原谅你！" },
+                    { text: "👎 抱着球赶紧溜了 (错)", isCorrect: false, feedback: "逃跑是不负责任、不诚实的行为。" }
+                ]
+            },
+            28: {
+                type: 'unscramble',
+                emoji: '💮',
+                desc: "词句重组：",
+                words: ["做", "老实", "娃"],
+                correctAnswer: "做老实娃",
+                feedback: "很对！“做老实娃”，大家最喜欢你！"
+            },
+            29: {
+                type: 'choice',
+                emoji: '🩹',
+                desc: "发现自己的作业全是抄别人的，你应该：",
+                choices: [
+                    { text: "👍 主动告诉老师并重写 (对)", isCorrect: true, feedback: "非常好！知错能改就是好孩子。" },
+                    { text: "👎 假装是自己做的 (错)", isCorrect: false, feedback: "不拿别人的成果欺骗自己和老师。" }
+                ]
+            },
+            30: {
+                type: 'punish',
+                emoji: '🙅',
+                desc: "【班费账目不清。】因为贪吃，偷偷挪用班费去买棒棒糖，被老师发现！后退2步！",
+                steps: -2
+            },
+            31: {
+                type: 'match',
+                emoji: '🌤️',
+                desc: "判断对错配对：",
+                left: ["考场作弊", "不作弊"],
+                right: ["坏行为 👎", "诚实 🏆"],
+                pairs: { "考场作弊": "坏行为 👎", "不作弊": "诚实 🏆" },
+                feedback: "回答正确！做到考场诚实最光荣！"
+            },
+            32: {
+                type: 'reward',
+                emoji: '🕹️',
+                desc: "【如期完成所承诺的工作。】说到做到，老老实实写完了大扫除日志，直达终点！",
+                steps: 1
+            }
+        };
+
+        function initPlayBoard() {
+            const gridContainer = document.getElementById('board-grid');
+            gridContainer.innerHTML = '';
+
+            const cols = 7;
+            for (let i = 1; i <= 33; i++) {
+                let r = Math.floor((i - 1) / cols);
+                let c = (i - 1) % cols;
+                
+                // 蛇形走位，奇数行逆序
+                if (r % 2 === 1) {
+                    c = cols - 1 - c;
+                }
+
+                const island = document.createElement('div');
+                island.id = `island-${i}`;
+                // 默认极其干净，只写大号码，无任何默认小图案
+                island.className = `aspect-square rounded-2xl border-4 border-slate-200 bg-white shadow-sm flex flex-col items-center justify-center p-1 cursor-pointer transition-all duration-300 floating-cloud`;
+                island.style.animationDelay = `${(r + c) * 0.1}s`;
+                island.style.gridRow = r + 1;
+                island.style.gridColumn = c + 1;
+
+                island.innerHTML = `
+                    <div class="island-inner flex flex-col items-center justify-center w-full h-full">
+                        <span class="tile-number text-lg sm:text-2xl font-black text-slate-700">${i}</span>
+                    </div>
+                `;
+
+                gridContainer.appendChild(island);
+            }
+
+            setTimeout(positionTokens, 150);
+        }
+
+        function resetGame() {
+            players[0].pos = 1;
+            players[1].pos = 1;
+            players[2].pos = 1;
+            currentPlayerIndex = 0;
+            diceRolling = false;
+            selectedReflectionStars = 0;
+
+            document.getElementById('dice-face').innerText = '?';
+            document.getElementById('reflection-win-msg').classList.add('hidden');
+
+            // 复原反思课后卡
+            const cards = document.querySelectorAll('#reflection-box > div');
+            cards.forEach(c => {
+                c.className = "bg-white border-2 border-slate-200 p-2.5 rounded-xl text-[11px] font-black text-slate-700 cursor-pointer transition-all flex items-center justify-between";
+                c.querySelector('.star-icon').className = "star-icon text-slate-200";
+                c.querySelector('.star-icon').innerText = "★";
+            });
+
+            document.getElementById('modal-event').classList.add('hidden');
+            document.getElementById('modal-win').classList.add('hidden');
+
+            refreshScores();
+            refreshActivePlayerIndicator();
+            positionTokens();
+            
+            const firstPlayer = players[0];
+            updateTipBubble(`冒险开始！请 【${firstPlayer.name}】(${firstPlayer.avatar}) 点击骰子起步！`);
+        }
+
+        function refreshScores() {
+            document.getElementById('score-p1').innerText = `第 ${players[0].pos} 格`;
+            document.getElementById('score-p2').innerText = `第 ${players[1].pos} 格`;
+            document.getElementById('score-p3').innerText = `第 ${players[2].pos} 格`;
+        }
+
+        function refreshActivePlayerIndicator() {
+            const activePlayer = players[currentPlayerIndex];
+            const emojiDiv = document.getElementById('active-p-emoji');
+            const nameDiv = document.getElementById('active-p-name');
+            const activeCard = document.getElementById('active-card');
+
+            emojiDiv.innerText = activePlayer.avatar;
+            nameDiv.innerText = activePlayer.name;
+
+            // 根据活跃玩家动态改变卡片边框
+            if (currentPlayerIndex === 0) {
+                nameDiv.className = "font-extrabold text-sky-600 text-lg";
+                activeCard.className = "flex items-center gap-4 mb-4 bg-sky-50 px-6 py-2.5 rounded-2xl border-2 border-sky-200 shadow-sm w-full justify-center";
+            } else if (currentPlayerIndex === 1) {
+                nameDiv.className = "font-extrabold text-amber-600 text-lg";
+                activeCard.className = "flex items-center gap-4 mb-4 bg-amber-50 px-6 py-2.5 rounded-2xl border-2 border-amber-200 shadow-sm w-full justify-center";
+            } else {
+                nameDiv.className = "font-extrabold text-pink-600 text-lg";
+                activeCard.className = "flex items-center gap-4 mb-4 bg-pink-50 px-6 py-2.5 rounded-2xl border-2 border-pink-200 shadow-sm w-full justify-center";
+            }
+        }
+
+        function positionTokens() {
+            // 首先，清除地图上所有格子的【激活高亮】和【临时画面】，让它们变回干净的纯数字
+            for (let idx = 1; idx <= 33; idx++) {
+                const island = document.getElementById(`island-${idx}`);
+                if (island) {
+                    island.classList.remove('active-island');
+                    const inner = island.querySelector('.island-inner');
+                    inner.innerHTML = `<span class="tile-number text-lg sm:text-2xl font-black text-slate-700">${idx === 1 ? '起点' : idx === 33 ? '诚实岛' : idx}</span>`;
+                }
+            }
+
+            const getIslandCenter = (islandId) => {
+                const island = document.getElementById(`island-${islandId}`);
+                if (!island) return { x: 0, y: 0 };
+                const containerRect = document.getElementById('board-grid').getBoundingClientRect();
+                const islandRect = island.getBoundingClientRect();
+                return {
+                    x: islandRect.left - containerRect.left + (islandRect.width / 2),
+                    y: islandRect.top - containerRect.top + (islandRect.height / 2)
+                };
+            };
+
+            const t1 = document.getElementById('token-p1');
+            const t2 = document.getElementById('token-p2');
+            const t3 = document.getElementById('token-p3');
+
+            const c1 = getIslandCenter(players[0].pos);
+            const c2 = getIslandCenter(players[1].pos);
+            const c3 = getIslandCenter(players[2].pos);
+
+            let offset1 = { x: 0, y: 0 };
+            let offset2 = { x: 0, y: 0 };
+            let offset3 = { x: 0, y: 0 };
+
+            const same12 = (players[0].pos === players[1].pos);
+            const same13 = (players[0].pos === players[2].pos);
+            const same23 = (players[1].pos === players[2].pos);
+
+            // 多人同格时，错开防止互相遮挡
+            if (same12 && same23) {
+                offset1 = { x: -14, y: -8 };
+                offset2 = { x: 14, y: -8 };
+                offset3 = { x: 0, y: 12 };
+            } else {
+                if (same12) {
+                    offset1 = { x: -12, y: -5 };
+                    offset2 = { x: 12, y: 5 };
+                }
+                if (same13) {
+                    offset1 = { x: -12, y: -5 };
+                    offset3 = { x: 12, y: 5 };
+                }
+                if (same23) {
+                    offset2 = { x: -12, y: -5 };
+                    offset3 = { x: 12, y: 5 };
+                }
+            }
+
+            const halfSize = 24; 
+            t1.style.left = `${c1.x - halfSize + offset1.x}px`;
+            t1.style.top = `${c1.y - halfSize + offset1.y}px`;
+
+            t2.style.left = `${c2.x - halfSize + offset2.x}px`;
+            t2.style.top = `${c2.y - halfSize + offset2.y}px`;
+
+            t3.style.left = `${c3.x - halfSize + offset3.x}px`;
+            t3.style.top = `${c3.y - halfSize + offset3.y}px`;
+
+            // === 核心需求：走到第几格，就在格子里出现画面 ===
+            // 我们找出目前所有玩家占领的格子，给这几个格子动态添加大背景色，并在格子里浮现当前情境的【emoji画面】！
+            players.forEach(p => {
+                const occupiedIsland = document.getElementById(`island-${p.pos}`);
+                if (occupiedIsland) {
+                    // 添加亮色背景高亮
+                    occupiedIsland.classList.add('active-island');
+                    
+                    const inner = occupiedIsland.querySelector('.island-inner');
+                    const qData = boardQuestions[p.pos];
+                    
+                    // 获取对应格子的情境插图(Emoji)
+                    let emojiPic = '📍';
+                    if (p.pos === 1) emojiPic = '🚀';
+                    else if (p.pos === 33) emojiPic = '👑';
+                    else if (qData) emojiPic = qData.emoji;
+
+                    // 动态塞入格子内部，让它亮起画面！
+                    inner.innerHTML = `
+                        <span class="text-2xl block animate-bounce my-0.5">${emojiPic}</span>
+                        <span class="tile-number text-xs font-extrabold text-rose-600">${p.pos === 1 ? '起点' : p.pos === 33 ? '诚实岛' : p.pos}</span>
+                    `;
+                }
+            });
+        }
+
+        function userClickDice() {
+            if (diceRolling) return;
+            executeDiceRolling();
+        }
+
+        function executeDiceRolling() {
+            diceRolling = true;
+            playWebSound('dice');
+            
+            const diceContainer = document.getElementById('dice-element');
+            diceContainer.classList.add('spinning');
+
+            let timerCounter = 0;
+            const diceFaces = ['1', '2', '3', '4', '5', '6'];
+            
+            const rollInterval = setInterval(() => {
+                const randFace = diceFaces[Math.floor(Math.random() * 6)];
+                document.getElementById('dice-face').innerText = randFace;
+                timerCounter++;
+
+                if (timerCounter > 8) {
+                    clearInterval(rollInterval);
+                    diceContainer.classList.remove('spinning');
+
+                    const finalRollNum = Math.floor(Math.random() * 6) + 1;
+                    document.getElementById('dice-face').innerText = finalRollNum;
+                    
+                    moveActivePlayer(finalRollNum);
+                }
+            }, 60);
+        }
+
+        function moveActivePlayer(steps) {
+            let activePlayer = players[currentPlayerIndex];
+            let targetPos = activePlayer.pos;
+
+            updateTipBubble(`🎲 【${activePlayer.name}】(${activePlayer.avatar}) 摇到了 ${steps} 点！出发跳跃！`);
+
+            let rolledStep = 0;
+            const interval = setInterval(() => {
+                if (rolledStep < steps && targetPos < 33) {
+                    targetPos++;
+                    rolledStep++;
+
+                    const tokenElement = document.getElementById(`token-p${activePlayer.id}`);
+                    tokenElement.classList.add('hopping');
+                    setTimeout(() => tokenElement.classList.remove('hopping'), 350);
+
+                    activePlayer.pos = targetPos;
+
+                    playWebSound('click');
+                    positionTokens();
+                    refreshScores();
+                } else {
+                    clearInterval(interval);
+                    evaluateLandedTile(targetPos);
+                }
+            }, 450);
+        }
+
+        function evaluateLandedTile(pos) {
+            if (pos >= 33) {
+                players[currentPlayerIndex].pos = 33;
+                positionTokens();
+                triggerVictory();
+                return;
+            }
+
+            const q = boardQuestions[pos];
+            if (q) {
+                if (q.type === 'ai-mystery') {
+                    openAIMysteryDialog(pos);
+                } else {
+                    openEventDialog(q, pos);
+                }
+            } else {
+                nextTurn();
+            }
+        }
+
+        let cachedQuestion = null;
+        let selectedMatchLeft = null;
+        let selectedMatchRight = null;
+        let tempUnscrambleWords = []; // 临时拼句池
+        let originalScrambleWords = [];
+
+        // 核心 AI 异步请求方法，集成指数退避重试，防抖和错误控制
+        async function fetchFromGemini(systemPrompt, userPrompt, outputJson = false) {
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+            
+            if (outputJson) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json"
+                };
+            }
+
+            let delay = 1000;
+            for (let retry = 0; retry < 3; retry++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error Status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                } catch (err) {
+                    console.debug(`Gemini Call API failed, retrying in ${delay}ms...`, err);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // 指数级递增重试间隔
+                }
+            }
+            throw new Error("Unable to establish communication with Gemini AI Service.");
+        }
+
+        // 触发 AI 小精灵的简单解释伴读
+        async function askAITutor() {
+            if (!cachedQuestion) return;
+            
+            const tutorBubble = document.getElementById('ai-tutor-bubble');
+            const tutorText = document.getElementById('ai-tutor-text');
+            
+            tutorBubble.classList.remove('hidden');
+            tutorText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 小精灵正在动脑筋，帮你想办法...`;
+            playWebSound('click');
+
+            const systemPrompt = "你是一个超有爱心、专门辅导小学一二年级（华文水平极弱）小朋友的小精灵老师。请用非常简单、简短（不超过25个字）、充满口语化且带有一些可爱Emoji的华文，解释当前的诚实处境，并给出超级温暖的指点。";
+            const userPrompt = `当前的诚实情境是：\"${cachedQuestion.desc}\"。请帮我做出极简而生动的分析辅导。`;
+
+            try {
+                const hint = await fetchFromGemini(systemPrompt, userPrompt);
+                tutorText.innerText = hint;
+                speakText(hint);
+            } catch (err) {
+                tutorText.innerText = "😭 小精灵开小差啦，深呼吸再试一试哦！我们要保持诚实守信用！";
+            }
+        }
+
+        // 动态调取 Gemini 实时生成针对该角色的崭新题目
+        async function openAIMysteryDialog(posNum) {
+            const activePlayer = players[currentPlayerIndex];
+            
+            // 构建预备交互框样式
+            document.getElementById('event-emoji').innerText = '🔮';
+            document.getElementById('event-title').innerText = `第 ${posNum} 格：AI 幻境岛 🌈`;
+            document.getElementById('event-desc').innerText = `正在为【${activePlayer.name}】实时变出神秘考验...`;
+
+            const interactionBox = document.getElementById('event-interaction-box');
+            interactionBox.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-6 text-violet-500 font-extrabold gap-3">
+                    <i class="fa-solid fa-wand-magic-sparkles text-4xl animate-bounce"></i>
+                    <p class="text-xs">小精灵正在魔法盒里寻找关于“诚实”的新题目...</p>
+                </div>
+            `;
+
+            document.getElementById('ai-tutor-bubble').classList.add('hidden');
+            document.getElementById('event-feedback').classList.add('hidden');
+            document.getElementById('btn-next-step').classList.add('hidden');
+            document.getElementById('modal-event').classList.remove('hidden');
+
+            const systemPrompt = `你是一个出色的华文幼儿道德题库设计师。
+            请帮我生成一道完全贴合一二年级、词汇浅显极简、具有拼音韵律感的诚实道德选择题。
+            必须严格输出包含以下字段的 JSON 数据：
+            {
+              "emoji": "一个切题的单表情符号",
+              "desc": "简单的一句话描述（不超15字，如：捡到钱要怎么做？）",
+              "choices": [
+                {"text": "选项A，必须是正确诚实的做法（带Emoji，不超过10字）", "isCorrect": true, "feedback": "极短的小红花反馈"},
+                {"text": "选项B，必须是错误的作弊做法（带Emoji，不超过10字）", "isCorrect": false, "feedback": "极简引导反省反馈"}
+              ]
+            }`;
+
+            const userPrompt = `为正在扮演 ${activePlayer.avatar} 的玩家【${activePlayer.name}】量身定做一题！`;
+
+            try {
+                const jsonText = await fetchFromGemini(systemPrompt, userPrompt, true);
+                const qData = JSON.parse(jsonText.replace(/```json|```/g, ''));
+                
+                cachedQuestion = {
+                    type: 'choice',
+                    emoji: qData.emoji,
+                    desc: qData.desc,
+                    choices: qData.choices
+                };
+
+                // 重新渲染弹窗内容
+                document.getElementById('event-emoji').innerText = qData.emoji;
+                document.getElementById('event-desc').innerText = qData.desc;
+                interactionBox.innerHTML = '';
+                
+                speakCurrentEvent();
+
+                qData.choices.forEach((choice) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full py-3 px-4 rounded-xl font-black text-sm border-2 border-slate-200 hover:border-violet-300 bg-slate-50 hover:bg-violet-50 text-slate-800 transition-all mb-2 transform active:scale-95";
+                    btn.innerText = choice.text;
+                    btn.onclick = () => submitChoiceAnswer(choice);
+                    interactionBox.appendChild(btn);
+                });
+
+            } catch (err) {
+                console.error(err);
+                // 异常备选本地题
+                const fallbackQ = {
+                    type: 'choice',
+                    emoji: '🧸',
+                    desc: "不小心藏起别人的玩具，你应该：",
+                    choices: [
+                        { text: "👍 主动还给他 (对)", isCorrect: true, feedback: "对！借还分明最诚实！" },
+                        { text: "👎 塞在家里玩 (错)", isCorrect: false, feedback: "不可以随便藏他人东西！" }
+                    ]
+                };
+                cachedQuestion = fallbackQ;
+                document.getElementById('event-emoji').innerText = fallbackQ.emoji;
+                document.getElementById('event-desc').innerText = fallbackQ.desc;
+                interactionBox.innerHTML = '';
+                fallbackQ.choices.forEach((choice) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full py-3 px-4 rounded-xl font-black text-sm border-2 border-slate-200 hover:border-violet-300 bg-slate-50 hover:bg-violet-50 text-slate-800 transition-all mb-2 transform active:scale-95";
+                    btn.innerText = choice.text;
+                    btn.onclick = () => submitChoiceAnswer(choice);
+                    interactionBox.appendChild(btn);
+                });
+            }
+        }
+
+        // 游戏终点荣誉定制表扬生成器
+        async function generateAICertificate() {
+            const winner = players[0].pos >= 33 ? players[0] : (players[1].pos >= 33 ? players[1] : players[2]);
+            const p1 = players[0];
+            const p2 = players[1];
+            const p3 = players[2];
+
+            const loadIndicator = document.getElementById('ai-cert-loading');
+            const contentBox = document.getElementById('ai-cert-content');
+
+            loadIndicator.classList.remove('hidden');
+            contentBox.classList.add('hidden');
+
+            const systemPrompt = "你是一个学校颁奖礼上的可爱小主持人。请基于冒险岛比赛，为获奖的小孩、以及积极参与的其他小朋友，写一篇非常短（约80字以内）、富有极强童真鼓励、大团圆温馨氛围的表扬辞。多加一些爱心、奖杯和星星Emoji。";
+            const userPrompt = `本次诚实岛比赛圆满结束！冠军是：${winner.name}(${winner.avatar})，积极参赛的队友还有：${p1.name}(${p1.avatar})、${p2.name}(${p2.avatar}) 和 ${p3.name}(${p3.avatar})。请为他们量身合成一封暖心的表扬信。`;
+
+            try {
+                const text = await fetchFromGemini(systemPrompt, userPrompt);
+                loadIndicator.classList.add('hidden');
+                contentBox.classList.remove('hidden');
+                contentBox.innerText = text;
+                speakText("诚实岛勋章表扬信生成完成啦！听听 AI 老师的评语吧。");
+            } catch (err) {
+                loadIndicator.classList.add('hidden');
+                contentBox.classList.remove('hidden');
+                contentBox.innerText = `🏆 【诚实小勋章】\n恭喜 ${winner.name} 获得诚实岛第一名！\n也给 ${p1.name}、${p2.name}、${p3.name} 送上爱心小红花！大家都是说到做到的好孩子！`;
+            }
+        }
+
+        function openEventDialog(q, posNum) {
+            cachedQuestion = q;
+            
+            document.getElementById('event-emoji').innerText = q.emoji;
+            document.getElementById('event-title').innerText = `第 ${posNum} 格：诚实挑战 🌈`;
+            document.getElementById('event-desc').innerText = q.desc;
+
+            const interactionBox = document.getElementById('event-interaction-box');
+            interactionBox.innerHTML = '';
+
+            // 重置 AI 伴读辅导窗口
+            document.getElementById('ai-tutor-bubble').classList.add('hidden');
+            document.getElementById('event-feedback').classList.add('hidden');
+            document.getElementById('btn-next-step').classList.add('hidden');
+
+            // 自动慢速大声朗读题目，协助弱语水平孩子
+            speakCurrentEvent();
+
+            // ================= 题型 1: 选择题 =================
+            if (q.type === 'choice') {
+                q.choices.forEach((choice) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full py-3 px-4 rounded-xl font-black text-sm border-2 border-slate-200 hover:border-pink-300 bg-slate-50 hover:bg-pink-50 text-slate-800 transition-all mb-2 transform active:scale-95";
+                    btn.innerText = choice.text;
+                    btn.onclick = () => submitChoiceAnswer(choice);
+                    interactionBox.appendChild(btn);
+                });
+            }
+            // ================= 题型 2: 词句重组 =================
+            else if (q.type === 'unscramble') {
+                tempUnscrambleWords = [];
+                originalScrambleWords = [...q.words].sort(() => Math.random() - 0.5);
+
+                const container = document.createElement('div');
+                container.className = "flex flex-col gap-3 items-center w-full";
+
+                const wordPool = document.createElement('div');
+                wordPool.id = "word-pool";
+                wordPool.className = "flex gap-2 flex-wrap justify-center my-1";
+
+                const assembledBox = document.createElement('div');
+                assembledBox.id = "assembled-box";
+                assembledBox.className = "w-full min-h-[44px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-2 flex gap-2 justify-center items-center flex-wrap";
+
+                function renderUnscramble() {
+                    wordPool.innerHTML = '';
+                    assembledBox.innerHTML = '';
+
+                    originalScrambleWords.forEach((word) => {
+                        if (tempUnscrambleWords.includes(word)) return;
+                        const card = document.createElement('button');
+                        card.className = "px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-slate-800 border-2 border-yellow-300 rounded-lg text-xs font-extrabold";
+                        card.innerText = word;
+                        card.onclick = () => {
+                            playWebSound('click');
+                            tempUnscrambleWords.push(word);
+                            renderUnscramble();
+                        };
+                        wordPool.appendChild(card);
+                    });
+
+                    tempUnscrambleWords.forEach((word) => {
+                        const card = document.createElement('button');
+                        card.className = "px-3 py-1.5 bg-emerald-100 text-emerald-800 border-2 border-emerald-300 rounded-lg text-xs font-extrabold";
+                        card.innerText = word;
+                        card.onclick = () => {
+                            playWebSound('click');
+                            tempUnscrambleWords = tempUnscrambleWords.filter(w => w !== word);
+                            renderUnscramble();
+                        };
+                        assembledBox.appendChild(card);
+                    });
+                }
+
+                renderUnscramble();
+                container.appendChild(assembledBox);
+                container.appendChild(wordPool);
+
+                const checkBtn = document.createElement('button');
+                checkBtn.className = "w-full py-2 bg-pink-500 hover:bg-pink-600 text-white font-black rounded-lg text-xs shadow-md border-b-4 border-pink-700 active:border-b-0 active:translate-y-0.5 mt-2";
+                checkBtn.innerText = "检查拼句结果 🔍";
+                checkBtn.onclick = () => {
+                    const resultStr = tempUnscrambleWords.join('');
+                    if (resultStr === q.correctAnswer) {
+                        submitChoiceAnswer({ isCorrect: true, feedback: q.feedback });
+                    } else {
+                        submitChoiceAnswer({ isCorrect: false, feedback: "句子不通顺哦，再换个顺序试一下吧！" });
+                    }
+                };
+                container.appendChild(checkBtn);
+                interactionBox.appendChild(container);
+            }
+            // ================= 题型 3: 简单配对 =================
+            else if (q.type === 'match') {
+                selectedMatchLeft = null;
+                selectedMatchRight = null;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = "grid grid-cols-2 gap-4 w-full my-2";
+
+                const leftCol = document.createElement('div');
+                leftCol.className = "flex flex-col gap-2";
+                const rightCol = document.createElement('div');
+                rightCol.className = "flex flex-col gap-2";
+
+                const shuffledRight = [...q.right].sort(() => Math.random() - 0.5);
+
+                q.left.forEach((item) => {
+                    const lBtn = document.createElement('button');
+                    lBtn.id = `left-${item}`;
+                    lBtn.className = "py-2 px-3 bg-indigo-50 border-2 border-indigo-200 text-indigo-900 rounded-xl text-xs font-black transition-all";
+                    lBtn.innerText = item;
+                    lBtn.onclick = () => {
+                        playWebSound('click');
+                        selectedMatchLeft = item;
+                        document.querySelectorAll('[id^="left-"]').forEach(el => el.classList.remove('border-indigo-500', 'bg-indigo-200'));
+                        lBtn.className += " border-indigo-500 bg-indigo-200";
+                        checkAndSubmitMatch(q);
+                    };
+                    leftCol.appendChild(lBtn);
+                });
+
+                shuffledRight.forEach((item) => {
+                    const rBtn = document.createElement('button');
+                    rBtn.id = `right-${item}`;
+                    rBtn.className = "py-2 px-3 bg-amber-50 border-2 border-amber-200 text-amber-900 rounded-xl text-xs font-black transition-all";
+                    rBtn.innerText = item;
+                    rBtn.onclick = () => {
+                        playWebSound('click');
+                        selectedMatchRight = item;
+                        document.querySelectorAll('[id^="right-"]').forEach(el => el.classList.remove('border-amber-500', 'bg-amber-200'));
+                        rBtn.className += " border-amber-500 bg-amber-200";
+                        checkAndSubmitMatch(q);
+                    };
+                    rightCol.appendChild(rBtn);
+                });
+
+                wrapper.appendChild(leftCol);
+                wrapper.appendChild(rightCol);
+                interactionBox.appendChild(wrapper);
+
+                const promptTip = document.createElement('div');
+                promptTip.className = "text-[10px] text-slate-400 font-bold mt-1";
+                promptTip.innerText = "小提示：左边点一下，右边再点一下配对！";
+                interactionBox.appendChild(promptTip);
+            }
+            // ================= 题型 4: 奖惩格直接跃迁 =================
+            else if (q.type === 'reward' || q.type === 'punish') {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = q.type === 'reward' 
+                    ? "text-emerald-800 font-black text-sm p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200" 
+                    : "text-rose-800 font-black text-sm p-4 bg-rose-50 rounded-xl border-2 border-rose-200";
+                
+                infoDiv.innerText = q.type === 'reward' ? `太棒啦！前进 ${q.steps} 步！🌟` : `不诚实结果：后退 ${Math.abs(q.steps)} 步！💨`;
+                interactionBox.appendChild(infoDiv);
+
+                setTimeout(() => {
+                    applyDirectMovement(q.steps, q.desc);
+                }, 1000);
+            }
+
+            document.getElementById('modal-event').classList.remove('hidden');
+        }
+
+        function checkAndSubmitMatch(q) {
+            if (selectedMatchLeft && selectedMatchRight) {
+                const expectedRight = q.pairs[selectedMatchLeft];
+                if (selectedMatchRight === expectedRight) {
+                    submitChoiceAnswer({ isCorrect: true, feedback: q.feedback });
+                } else {
+                    submitChoiceAnswer({ isCorrect: false, feedback: "配对错啦，再细心看一圈哦！" });
+                }
+            }
+        }
+
+        function speakCurrentEvent() {
+            if (cachedQuestion) {
+                speakText(cachedQuestion.desc);
+            }
+        }
+
+        function submitChoiceAnswer(choice) {
+            const feedbackPanel = document.getElementById('event-feedback');
+            feedbackPanel.innerText = choice.feedback;
+            feedbackPanel.classList.remove('hidden');
+
+            if (choice.isCorrect) {
+                playWebSound('yes');
+                speakText(choice.feedback + "。回答正确，你可以留在这里啦！");
+                feedbackPanel.className = "w-full rounded-xl p-3 text-xs sm:text-sm font-black mb-3 text-left border-4 bg-emerald-50 border-emerald-300 text-emerald-800";
+            } else {
+                playWebSound('no');
+                speakText(choice.feedback + "。答错啦，后退一步去反省吧。");
+                feedbackPanel.className = "w-full rounded-xl p-3 text-xs sm:text-sm font-black mb-3 text-left border-4 bg-rose-50 border-rose-300 text-rose-800 animate-bounce";
+
+                // 答错惩罚：后退1格
+                let activePlayer = players[currentPlayerIndex];
+                activePlayer.pos = Math.max(1, activePlayer.pos - 1);
+                positionTokens();
+                refreshScores();
+            }
+
+            document.getElementById('event-interaction-box').innerHTML = '';
+            document.getElementById('btn-next-step').classList.remove('hidden');
+        }
+
+        function applyDirectMovement(steps, originalDesc) {
+            let activePlayer = players[currentPlayerIndex];
+            activePlayer.pos = Math.max(1, Math.min(33, activePlayer.pos + steps));
+            
+            positionTokens();
+            refreshScores();
+
+            if (steps > 0) {
+                playWebSound('yes');
+                speakText("奖励成功！" + originalDesc);
+            } else {
+                playWebSound('no');
+                speakText("受到惩罚，退后！" + originalDesc);
+            }
+
+            document.getElementById('btn-next-step').classList.remove('hidden');
+        }
+
+        function closeEventModal() {
+            document.getElementById('modal-event').classList.add('hidden');
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            nextTurn();
+        }
+
+        function nextTurn() {
+            // 判定有人抵达终点
+            if (players[0].pos >= 33 || players[1].pos >= 33 || players[2].pos >= 33) {
+                triggerVictory();
+                return;
+            }
+
+            currentPlayerIndex = (currentPlayerIndex + 1) % 3;
+            refreshActivePlayerIndicator();
+            diceRolling = false;
+
+            const nextPlayer = players[currentPlayerIndex];
+            updateTipBubble(`轮到 【${nextPlayer.name}】(${nextPlayer.avatar}) 了。请抛起可爱的骰子吧！🎲`);
+        }
+
+        function triggerVictory() {
+            playWebSound('victory');
+            
+            let winner = players[0];
+            if (players[1].pos >= 33) winner = players[1];
+            if (players[2].pos >= 33) winner = players[2];
+
+            document.getElementById('win-message').innerHTML = `
+                恭喜我们的诚实之星 👑 <b>${winner.name} (${winner.avatar})</b> 跑到了【诚实岛】！<br>
+                在这一路上，大家都学会了守时守信、拾金不昧、知错能改！大家全都是最诚实的好孩子！
+            `;
+
+            document.getElementById('modal-win').classList.remove('hidden');
+            sparkleConfetti();
+            
+            // 实时生成专属 AI 证书
+            generateAICertificate();
+        }
+
+        function sparkleConfetti() {
+            const container = document.getElementById('confetti-holder');
+            container.innerHTML = '';
+            const colors = ['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f472b6'];
+
+            for (let i = 0; i < 40; i++) {
+                const dot = document.createElement('div');
+                dot.style.position = 'absolute';
+                dot.style.width = `${Math.random() * 8 + 6}px`;
+                dot.style.height = `${Math.random() * 10 + 6}px`;
+                dot.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                dot.style.left = `${Math.random() * 100}%`;
+                dot.style.top = `-20px`;
+                dot.style.opacity = Math.random() * 0.5 + 0.5;
+                dot.style.borderRadius = '50%';
+                
+                const animDuration = Math.random() * 2 + 2;
+                const animDelay = Math.random() * 2;
+                dot.style.animation = `fallDown ${animDuration}s linear ${animDelay}s infinite`;
+                
+                container.appendChild(dot);
+            }
+
+            if (!document.getElementById('confetti-style')) {
+                const style = document.createElement('style');
+                style.id = 'confetti-style';
+                style.innerHTML = `
+                    @keyframes fallDown {
+                        0% { transform: translateY(-10px) rotate(0deg); }
+                        100% { transform: translateY(100vh) rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // 反思点击卡点亮星星
+        function clickReflectionItem(element, isRightAnswer) {
+            playWebSound('click');
+            if (isRightAnswer) {
+                if (!element.classList.contains('border-rose-400')) {
+                    element.className = "bg-rose-50 border-4 border-rose-400 p-2.5 rounded-xl text-[11px] font-black text-rose-700 cursor-pointer transition-all flex items-center justify-between shadow-sm animate-pulse";
+                    const starSpan = element.querySelector('.star-icon');
+                    starSpan.className = "star-icon text-yellow-500 font-black text-xs";
+                    starSpan.innerText = "★ 已点亮";
+                    selectedReflectionStars++;
+                    playWebSound('yes');
+                }
+            } else {
+                element.className = "bg-slate-100 border-2 border-slate-300 p-2.5 rounded-xl text-[11px] font-black text-slate-400 cursor-pointer transition-all flex items-center justify-between opacity-50";
+                playWebSound('no');
+            }
+
+            // 成功找出 4 个
+            if (selectedReflectionStars >= 4) {
+                document.getElementById('reflection-win-msg').classList.remove('hidden');
+                speakText("太棒了！你们找齐了4个不诚实带来的后果！我们一定要坚持说实话，做个守信的人！");
+            }
+        }
+
+        function updateTipBubble(txt) {
+            document.getElementById('tip-bubble').innerText = txt;
+        }
+
+        window.onload = function() {
+            renderSetupOptions();
+            initPlayBoard();
+        };
+    </script>
+</body>
+</html>
